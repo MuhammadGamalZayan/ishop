@@ -318,7 +318,7 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
                             return (
                                 <li key={l.id} className={`flex items-start gap-3.5 ${gone ? 'opacity-55' : ''}`}>
                                     <span className="relative flex size-16 flex-none items-center justify-center rounded-lg border border-[#e0e0e0] bg-white">
-                                        <ProductImage src={l.image} alt="" swatch={l.swatch} />
+                                        <ProductImage compact src={l.image} alt="" swatch={l.swatch} />
                                         <span className="absolute -end-2 -top-2 flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-ink px-1.5 text-xs text-white">{l.quantity}</span>
                                     </span>
                                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">

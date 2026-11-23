@@ -1,5 +1,6 @@
-import { Link } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { Heart, Loader2, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { AddToCartButton } from '@/components/shop/add-to-cart-button';
 import { useCart } from '@/components/shop/cart-context';
 import { ProductImage } from '@/components/shop/product-image';
@@ -15,12 +16,21 @@ const PLUS = 'absolute end-0 bottom-0 flex size-11 items-center justify-center b
  * opens the quick-add window to pick colour / size without leaving the page.
  */
 export function ProductCard({ product }: { product: ProductCardData }) {
-    const { locale } = useShop();
+    const { locale, wishlist } = useShop();
+    const [saving, setSaving] = useState(false);
+    const saved = wishlist.includes(product.id);
     const t = useT();
     const cart = useCart();
     const badge = product.badge ? t(product.badge === 'sold_out' ? 'product.sold_out' : `product.badges.${product.badge}`) : null;
     const price = product.price_varies ? t('product.from', { price: money(product.price, locale) }) : money(product.price, locale);
     const adding = product.quick_variant_id !== null && cart.adding === product.quick_variant_id;
+
+    // Full reload of the page props (no `only`), so on the wishlist page the
+    // card simply drops out of the list once it is removed.
+    const toggleSaved = () => {
+        setSaving(true);
+        router.post(`/wishlist/${product.id}`, {}, { preserveScroll: true, onFinish: () => setSaving(false) });
+    };
 
     return (
         <article className="group flex flex-col gap-3.5">
@@ -29,6 +39,20 @@ export function ProductCard({ product }: { product: ProductCardData }) {
                 <Link href={product.url} aria-label={product.name} className="block h-full">
                     <ProductImage src={product.image} hoverSrc={product.image_hover} alt={product.name} swatch={product.swatch} />
                 </Link>
+                <button
+                    type="button"
+                    onClick={toggleSaved}
+                    disabled={saving}
+                    aria-pressed={saved}
+                    aria-label={`${saved ? t('pdp.wishlist_remove') : t('pdp.wishlist_add')}: ${product.name}`}
+                    className="absolute end-0 top-0 z-10 flex size-10 items-center justify-center text-ink transition hover:scale-110 disabled:opacity-60"
+                >
+                    {saving ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                        <Heart className="size-4.5" strokeWidth={1.4} fill={saved ? 'currentColor' : 'none'} aria-hidden="true" />
+                    )}
+                </button>
                 {product.in_stock &&
                     (product.quick_variant_id ? (
                         <AddToCartButton

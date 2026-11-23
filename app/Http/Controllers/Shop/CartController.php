@@ -42,7 +42,7 @@ class CartController extends Controller
 
     private function respond(Request $request): RedirectResponse|JsonResponse
     {
-        return $request->expectsJson()
+        return $request->expectsJson() && ! $request->header('X-Inertia')
             ? response()->json(['cart_count' => $this->cart->count()])
             : back();
     }

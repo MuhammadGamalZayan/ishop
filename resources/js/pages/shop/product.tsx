@@ -3,7 +3,7 @@ import { ChevronDown, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { AddToCartButton } from '@/components/shop/add-to-cart-button';
 import { ProductCard } from '@/components/shop/product-card';
-import { ProductImage } from '@/components/shop/product-image';
+import { ProductGallery } from '@/components/shop/product-gallery';
 import { VariantOptions, useVariantPicker } from '@/components/shop/variant-picker';
 import type { OptionAttribute, PickVariant } from '@/components/shop/variant-picker';
 import { money, useShop, useT } from '@/lib/shop';
@@ -39,13 +39,11 @@ export default function ProductPage({ product }: { product: Product }) {
 
     const picker = useVariantPicker(product.attributes, product.variants, product.default_variant_id);
     const { selected, variant, missing, ready, shown } = picker;
-    const [imageIndex, setImageIndex] = useState(0);
     const [open, setOpen] = useState<Record<string, boolean>>({});
 
     const colourAttr = product.attributes.find((a) => a.type === 'color');
     const colourId = colourAttr ? selected[colourAttr.id] : null;
     const images = [...((colourId && product.colour_images[colourId]) || []), ...product.images];
-    const current = images[Math.min(imageIndex, images.length - 1)];
     const swatch = colourAttr?.values.find((v) => v.id === colourId)?.hex ?? null;
     const saved = wishlist.includes(product.id);
 
@@ -53,30 +51,11 @@ export default function ProductPage({ product }: { product: Product }) {
         <>
             <Head title={product.meta_title}>{product.meta_description && <meta name="description" content={product.meta_description} />}</Head>
 
-            <section className="mx-auto flex max-w-[1360px] flex-wrap gap-14 px-4 pt-8 pb-20 sm:px-10">
-                <div className="flex min-w-0 flex-[999_1_560px] gap-5">
-                    {images.length > 1 && (
-                        <div role="group" aria-label={t('pdp.gallery')} className="hidden flex-none flex-col gap-3 sm:flex">
-                            {images.map((image, i) => (
-                                <button
-                                    key={image.thumb + i}
-                                    type="button"
-                                    onClick={() => setImageIndex(i)}
-                                    aria-pressed={i === imageIndex}
-                                    aria-label={t('pdp.image', { n: i + 1 })}
-                                    className={`size-18 overflow-hidden border bg-[#e6e6e6] ${i === imageIndex ? 'border-ink' : 'border-transparent'}`}
-                                >
-                                    <img src={image.thumb} alt="" className="h-full w-full object-cover" />
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                    <div className="flex aspect-square min-w-0 flex-1 items-center justify-center lg:aspect-auto lg:min-h-[620px]">
-                        <ProductImage src={current?.large ?? null} alt={product.name} swatch={swatch} sizes="(min-width: 1024px) 50vw, 100vw" />
-                    </div>
-                </div>
+            {/* Desktop: photos scroll in a column while the details stay in view. Phone: a swipe slider, details below. */}
+            <section className="mx-auto grid max-w-[1360px] gap-8 px-4 pt-6 pb-20 sm:px-10 lg:grid-cols-[minmax(0,1fr)_minmax(340px,440px)] lg:gap-14 lg:pt-8">
+                <ProductGallery key={colourId ?? 'all'} images={images} alt={product.name} swatch={swatch} />
 
-                <div className="flex max-w-[480px] min-w-0 flex-[1_1_380px] flex-col gap-5.5">
+                <div className="flex min-w-0 flex-col gap-5.5 lg:sticky lg:top-6 lg:self-start">
                     <nav aria-label={t('category.breadcrumb')} className="store-caps text-xs text-[#4a4a4a]">
                         <Link href={`/${locale}`}>{t('category.home')}</Link>
                         {product.breadcrumb && (
@@ -96,7 +75,7 @@ export default function ProductPage({ product }: { product: Product }) {
                         <span className="text-xs text-subtle">{t('pdp.vat')}</span>
                     </div>
 
-                    <VariantOptions attributes={product.attributes} picker={picker} onPick={() => setImageIndex(0)} />
+                    <VariantOptions attributes={product.attributes} picker={picker} />
 
                     <div className="flex gap-2.5">
                         <AddToCartButton

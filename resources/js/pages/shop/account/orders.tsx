@@ -46,7 +46,7 @@ export default function Orders({ orders, pagination }: { orders: Order[]; pagina
                         <div className="flex gap-1.5">
                             {order.images.map((src, i) => (
                                 <span key={i} className="flex size-13 items-center justify-center bg-mist">
-                                    <ProductImage src={src} alt="" />
+                                    <ProductImage compact src={src} alt="" />
                                 </span>
                             ))}
                         </div>

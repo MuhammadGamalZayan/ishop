@@ -85,7 +85,7 @@ export function CartDrawer() {
                     {lines.map((line) => (
                         <li key={line.id} className="flex gap-4.5 border-b border-line py-6" aria-busy={pending === line.id}>
                             <div className="flex size-23 flex-none items-center justify-center bg-[#e6e6e6]">
-                                <ProductImage src={line.image} alt="" swatch={line.swatch} className={line.must_remove ? 'opacity-50' : undefined} />
+                                <ProductImage compact src={line.image} alt="" swatch={line.swatch} className={line.must_remove ? 'opacity-50' : undefined} />
                             </div>
                             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                                 {line.url ? (
@@ -136,7 +136,7 @@ export function CartDrawer() {
                     <p className="store-caps text-xs">{t('cart.complete_with')}</p>
                     <div className="flex items-center gap-4.5">
                         <div className="flex size-18 flex-none items-center justify-center bg-[#e6e6e6]">
-                            <ProductImage src={cartDrawer.upsell.image} alt="" swatch={cartDrawer.upsell.swatch} />
+                            <ProductImage compact src={cartDrawer.upsell.image} alt="" swatch={cartDrawer.upsell.swatch} />
                         </div>
                         <div className="flex flex-col gap-1.5">
                             <Link href={cartDrawer.upsell.url} onClick={cart.closeDrawer} className="store-caps text-[13px]">

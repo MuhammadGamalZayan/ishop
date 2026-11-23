@@ -1,8 +1,11 @@
+import { ImageOff } from 'lucide-react';
+import { useT } from '@/lib/shop';
 import { cn } from '@/lib/utils';
 
 /**
- * A product photo, or until one is uploaded in the admin panel, the bag
- * silhouette from the mockups tinted with the product's colour.
+ * A product photo (WebP from the media library), or a neutral placeholder
+ * until one is uploaded in the admin panel. The placeholder takes a soft
+ * tint of the product's colour so cards of different colours still differ.
  */
 export function ProductImage({
     src,
@@ -11,6 +14,8 @@ export function ProductImage({
     swatch,
     className,
     sizes = '(min-width: 1024px) 25vw, 50vw',
+    compact = false,
+    eager = false,
 }: {
     src: string | null;
     hoverSrc?: string | null;
@@ -18,11 +23,17 @@ export function ProductImage({
     swatch?: string | null;
     className?: string;
     sizes?: string;
+    /** Small thumbnails: icon only, no text. */
+    compact?: boolean;
+    /** The first, visible image of a page: load it right away. */
+    eager?: boolean;
 }) {
+    const t = useT();
+
     if (src) {
         return (
             <span className={cn('relative block h-full w-full', className)}>
-                <img src={src} alt={alt} sizes={sizes} loading="lazy" decoding="async" className="h-full w-full object-contain" />
+                <img src={src} alt={alt} sizes={sizes} loading={eager ? 'eager' : 'lazy'} decoding="async" className="h-full w-full object-contain" />
                 {hoverSrc && (
                     <img
                         src={hoverSrc}
@@ -36,15 +47,16 @@ export function ProductImage({
         );
     }
 
-    const colour = swatch ?? '#3a3a3a';
-
     return (
-        <span className={cn('flex h-full w-full items-center justify-center', className)}>
-            <svg viewBox="0 0 200 160" className="h-auto w-[62%]" role="img" aria-label={alt}>
-                <path d="M72 62 V44 a28 28 0 0 1 56 0 V62" fill="none" stroke={colour} strokeWidth="7" />
-                <rect x="28" y="58" width="144" height="92" rx="8" fill={colour} />
-                <rect x="92" y="74" width="16" height="10" rx="2" fill="#c9a96a" />
-            </svg>
+        <span
+            role="img"
+            aria-label={alt}
+            className={cn('flex h-full w-full flex-col items-center justify-center gap-2 bg-[#e8e6e3] text-[#8a8580]', className)}
+            // A light wash of the product colour over the neutral tile.
+            style={swatch ? { backgroundImage: `linear-gradient(${swatch}26, ${swatch}26)` } : undefined}
+        >
+            <ImageOff className={compact ? 'size-4' : 'size-7'} strokeWidth={1.2} aria-hidden="true" />
+            {!compact && <span className="text-[11px] tracking-wide">{t('image_soon')}</span>}
         </span>
     );
 }

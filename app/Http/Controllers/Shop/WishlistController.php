@@ -15,7 +15,9 @@ class WishlistController extends Controller
     {
         $saved = $wishlist->toggle($product);
 
-        if ($request->expectsJson()) {
+        // Inertia visits also look like XHR; they must get the redirect so the
+        // page (hearts, wishlist list) reloads.
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
             return response()->json(['saved' => $saved]);
         }
 
