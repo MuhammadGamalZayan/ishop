@@ -20,10 +20,17 @@ Route::get('locale/{lang}', function (Request $request, string $lang) {
     $request->session()->put('locale', $lang);
     cookie()->queue(cookie(SetLocale::COOKIE, $lang, 60 * 24 * 365, httpOnly: true, sameSite: 'lax'));
 
-    // Back to the same page only if it is on this site.
-    $back = url()->previous();
+    // Back to the page the switch was clicked on (?return=/settings/profile).
+    // Only a local path is accepted (not "//evil.com" or "http://..."), so this
+    // can't be used as an open redirect; anything else goes to the home page.
+    $return = $request->query('return');
 
-    return redirect(str_starts_with($back, url('/')) ? $back : '/'.$lang);
+    if (is_string($return) && preg_match('#^/(?![/\\\\])[^\s]*$#', $return)) {
+        // A path with a language prefix opens in the language just chosen.
+        return redirect(preg_replace('#^/(en|ar)(?=/|\?|$)#', '/'.$lang, $return));
+    }
+
+    return redirect('/'.$lang);
 })->whereIn('lang', ['en', 'ar'])->name('locale.switch');
 
 // After sign-in Fortify lands here: staff go to the admin panel, customers to their orders.

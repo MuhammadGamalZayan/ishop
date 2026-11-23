@@ -148,4 +148,17 @@ class AccountAndCheckoutPageTest extends CheckoutTestCase
         $this->get('/locale/ar')->assertRedirect();
         $this->actingAs($this->customer)->get('/settings/profile')->assertOk();
     }
+
+    public function test_language_switch_returns_to_the_same_page(): void
+    {
+        $this->get('/locale/ar?return=/login')->assertRedirect('/login')->assertSessionHas('locale', 'ar');
+        $this->get('/locale/en?return='.urlencode('/settings/profile?tab=1'))->assertRedirect('/settings/profile?tab=1');
+        // A prefixed path opens in the language just chosen.
+        $this->get('/locale/ar?return=/en/products/x')->assertRedirect('/ar/products/x');
+        // No page given, or one that isn't on this site: the home page.
+        $this->get('/locale/ar')->assertRedirect('/ar');
+        $this->get('/locale/ar?return='.urlencode('//evil.example'))->assertRedirect('/ar');
+        $this->get('/locale/ar?return='.urlencode('/\\evil.example'))->assertRedirect('/ar');
+        $this->get('/locale/ar?return='.urlencode('https://evil.example'))->assertRedirect('/ar');
+    }
 }

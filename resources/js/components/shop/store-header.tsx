@@ -3,7 +3,7 @@ import { ChevronDown, Globe, Heart, Menu, Search, ShoppingBag, User, X } from 'l
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/components/shop/cart-context';
 import { Drawer } from '@/components/shop/drawer';
-import { otherLanguageUrl, useShop, useT } from '@/lib/shop';
+import { useOtherLanguageUrl, useShop, useT } from '@/lib/shop';
 import type { NavCategory } from '@/lib/shop';
 
 type Panel = 'none' | 'menu' | 'search' | 'account';
@@ -16,6 +16,7 @@ type Panel = 'none' | 'menu' | 'search' | 'account';
 export function StoreHeader() {
     const { nav, locale, cart, auth, wishlist } = useShop();
     const t = useT();
+    const switchUrl = useOtherLanguageUrl();
     const cartUi = useCart();
     const [panel, setPanel] = useState<Panel>('none');
     const [menuFor, setMenuFor] = useState<NavCategory | null>(null);
@@ -84,7 +85,7 @@ export function StoreHeader() {
                     </Link>
 
                     <div className="flex items-center justify-end gap-0.5">
-                        <a href={typeof window === 'undefined' ? '#' : otherLanguageUrl(locale)} lang={locale === 'ar' ? 'en' : 'ar'} className="hidden h-11 items-center gap-2 px-2.5 text-[13px] sm:inline-flex">
+                        <a href={switchUrl} lang={locale === 'ar' ? 'en' : 'ar'} className="hidden h-11 items-center gap-2 px-2.5 text-[13px] sm:inline-flex">
                             <Globe className="size-[18px]" strokeWidth={1.3} aria-hidden="true" />
                             <span>{t('nav.language')}</span>
                         </a>
@@ -196,7 +197,7 @@ export function StoreHeader() {
                             ))}
                         </div>
                     ))}
-                    <a href={typeof window === 'undefined' ? '#' : otherLanguageUrl(locale)} className="mt-4 inline-flex items-center gap-2 py-2 text-sm">
+                    <a href={switchUrl} className="mt-4 inline-flex items-center gap-2 py-2 text-sm">
                         <Globe className="size-4" strokeWidth={1.3} aria-hidden="true" />
                         {t('nav.language')}
                     </a>

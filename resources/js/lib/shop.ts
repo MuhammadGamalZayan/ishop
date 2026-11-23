@@ -100,11 +100,21 @@ export function money(piastres: number, locale: 'en' | 'ar'): string {
     return locale === 'ar' ? `${text} ج.م` : `EGP ${text}`;
 }
 
-/** Same page in the other language (full page load so <html dir> and fonts switch cleanly). */
-export function otherLanguageUrl(locale: 'en' | 'ar'): string {
-    const other = locale === 'ar' ? 'en' : 'ar';
-    const { pathname, search } = window.location;
+/**
+ * The same page in the other language, read from the current Inertia page so
+ * it follows every navigation (not just the first page loaded).
+ * - /en/... and /ar/...: swap the prefix (slugs are shared by both languages).
+ * - Pages without a prefix (sign in, settings): /locale/{lang} saves the
+ *   choice and comes back to this exact page.
+ * A full page load (plain <a>) so <html dir> and fonts switch cleanly.
+ */
+export function useOtherLanguageUrl(): string {
+    const { url, props } = usePage<ShopProps>();
+    const other = props.locale === 'ar' ? 'en' : 'ar';
 
-    // Pages without a language prefix (sign in, settings) switch through /locale/{lang}, which comes back here.
-    return /^\/(en|ar)(\/|$)/.test(pathname) ? pathname.replace(/^\/(en|ar)/, `/${other}`) + search : `/locale/${other}`;
+    if (/^\/(en|ar)(\/|\?|$)/.test(url)) {
+        return url.replace(/^\/(en|ar)/, `/${other}`);
+    }
+
+    return `/locale/${other}?return=${encodeURIComponent(url)}`;
 }
