@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CouponType;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use App\Models\Concerns\HasTranslations;
 
 #[Fillable([
     'code', 'description', 'type', 'value', 'min_subtotal', 'max_discount',

@@ -11,7 +11,6 @@ use App\Filament\Admin\Support\MoneyInput;
 use App\Models\Coupon;
 use BackedEnum;
 use Closure;
-use Illuminate\Support\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -34,6 +33,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use UnitEnum;
 
@@ -179,8 +179,8 @@ class CouponResource extends Resource
     /**
      * Turn the form's percent / amount into the stored `value`.
      *
-     * @param  array<string, mixed>  $data   dehydrated data
-     * @param  array<string, mixed>  $raw    raw form state
+     * @param  array<string, mixed>  $data  dehydrated data
+     * @param  array<string, mixed>  $raw  raw form state
      * @return array<string, mixed>
      */
     public static function valueFromForm(array $data, array $raw): array

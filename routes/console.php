@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
 use App\Models\Cart;
 use App\Models\Wishlist;
+use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 

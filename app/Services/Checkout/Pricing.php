@@ -10,6 +10,7 @@ use App\Models\ProductVariant;
 use App\Models\ShippingArea;
 use App\Models\TaxRate;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Turns cart lines into a Quote. Pure arithmetic on what it is given: the
@@ -33,7 +34,7 @@ class Pricing
     public function quote(array $items, ?Coupon $coupon = null, ?ShippingArea $area = null, ?User $user = null, bool $lockingReads = false): Quote
     {
         // Callers normally eager load these; make sure, without one query per line.
-        (new \Illuminate\Database\Eloquent\Collection(array_column($items, 'variant')))
+        (new Collection(array_column($items, 'variant')))
             ->loadMissing(['product', 'attributeValues.productAttribute']);
 
         $subtotals = array_map(fn (array $i): int => $i['variant']->price * $i['quantity'], $items);
@@ -134,7 +135,8 @@ class Pricing
     {
         $options = [];
 
-        foreach ($variant->attributeValues as $value) {
+        // In the admin's option order (Colour before Size), like everywhere else.
+        foreach ($variant->attributeValues->sortBy(fn (ProductAttributeValue $v): int => $v->productAttribute->sort_order) as $value) {
             /** @var ProductAttributeValue $value */
             $options[(string) $value->productAttribute->getTranslation('name', 'en', false)] = [
                 'name' => $value->productAttribute->getTranslations('name'),

@@ -15,12 +15,12 @@ return [
         'added' => 'Saved to your wishlist',
         'removed' => 'Removed from your wishlist',
     ],
-    "issues" => [
-        "removed" => "No longer available — remove it",
-        "variant_gone" => "This colour / size is no longer sold — remove it",
-        "sold_out" => "Sold out — remove it",
-        "only_left" => "Only :count left, you have :in_cart — lower the quantity",
+    'issues' => [
+        'removed' => 'No longer available — remove it',
+        'variant_gone' => 'This colour / size is no longer sold — remove it',
+        'sold_out' => 'Sold out — remove it',
+        'only_left' => 'Only :count left, you have :in_cart — lower the quantity',
     ],
-    "changed_title" => "Some items in your cart have changed",
-    "changed_text" => "Since you added them, some items were removed from the store or sold out. Update your cart before you continue.",
+    'changed_title' => 'Some items in your cart have changed',
+    'changed_text' => 'Since you added them, some items were removed from the store or sold out. Update your cart before you continue.',
 ];

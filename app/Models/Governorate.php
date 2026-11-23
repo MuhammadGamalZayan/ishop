@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Exceptions\ModelInUseException;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use App\Models\Concerns\HasTranslations;
 
 #[Fillable(['name', 'is_active', 'sort_order'])]
 class Governorate extends Model

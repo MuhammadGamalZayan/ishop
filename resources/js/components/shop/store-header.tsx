@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { ChevronDown, Globe, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { ChevronDown, Globe, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/components/shop/cart-context';
 import { Drawer } from '@/components/shop/drawer';
@@ -14,7 +14,7 @@ type Panel = 'none' | 'menu' | 'search' | 'account';
  * into a side menu. (The announcement bar needs an admin setting first.)
  */
 export function StoreHeader() {
-    const { nav, locale, cart, auth } = useShop();
+    const { nav, locale, cart, auth, wishlist } = useShop();
     const t = useT();
     const cartUi = useCart();
     const [panel, setPanel] = useState<Panel>('none');
@@ -88,6 +88,10 @@ export function StoreHeader() {
                             <Globe className="size-[18px]" strokeWidth={1.3} aria-hidden="true" />
                             <span>{t('nav.language')}</span>
                         </a>
+                        <Link href={`/${locale}/wishlist`} aria-label={`${t('nav.wishlist')}${wishlist.length ? ` (${wishlist.length})` : ''}`} className="relative hidden size-11 items-center justify-center sm:flex">
+                            <Heart className="size-[21px]" strokeWidth={1.3} />
+                            {wishlist.length > 0 && <span className="absolute end-1 top-2 size-2 rounded-full bg-ink" aria-hidden="true" />}
+                        </Link>
                         <button type="button" onClick={() => toggle('account')} aria-label={t('nav.account')} aria-expanded={panel === 'account'} className="flex size-11 items-center justify-center">
                             <User className="size-[21px]" strokeWidth={1.3} />
                         </button>
@@ -150,6 +154,14 @@ export function StoreHeader() {
                         {auth.user ? (
                             <>
                                 <p className="text-base">{t('account_menu.hello', { name: auth.user.name })}</p>
+                                <div className="grid grid-cols-2 gap-2.5">
+                                    <Link href={`/${locale}/account/orders`} className="flex h-11 items-center justify-center border border-[#d6d6d6] text-sm">
+                                        {t('account_menu.orders')}
+                                    </Link>
+                                    <Link href={`/${locale}/account/addresses`} className="flex h-11 items-center justify-center border border-[#d6d6d6] text-sm">
+                                        {t('account_menu.profile')}
+                                    </Link>
+                                </div>
                                 <Link href="/logout" method="post" as="button" className="store-caps flex h-11.5 items-center justify-center border border-ink text-[13px]">
                                     {t('account_menu.sign_out')}
                                 </Link>

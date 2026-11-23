@@ -25,6 +25,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class ProductForm
 {
@@ -221,8 +222,8 @@ class ProductForm
             ]);
     }
 
-    /** @return \Illuminate\Support\Collection<int, ProductAttributeValue> */
-    public static function colourValues(?Product $product): \Illuminate\Support\Collection
+    /** @return Collection<int, ProductAttributeValue> */
+    public static function colourValues(?Product $product): Collection
     {
         if (! $product?->exists) {
             return collect();

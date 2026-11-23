@@ -23,6 +23,10 @@ use RuntimeException;
  *   php artisan db:seed --class=DemoCatalogSeeder
  *
  * Refuses to run in production. Safe to run once; a second run is skipped.
+ *
+ * Local test accounts: admin@ishop.test (AdminUserSeeder) and
+ * customer@ishop.test (registered through the storefront while testing),
+ * both with the same local-only password as AdminUserSeeder's fallback.
  */
 class DemoCatalogSeeder extends Seeder
 {

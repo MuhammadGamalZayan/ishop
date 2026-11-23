@@ -46,6 +46,22 @@ class ExampleTest extends TestCase
         $this->get('/fr')->assertNotFound();
     }
 
+    public function test_quick_add_data_for_a_live_product_only(): void
+    {
+        $product = Product::create(['name' => ['en' => 'Tote', 'ar' => 'توت'], 'status' => ProductStatus::Active, 'published_at' => now()->subDay()]);
+        $product->variants()->create(['sku' => 'TOTE', 'price' => 100000, 'is_default' => true]);
+        $draft = Product::create(['name' => ['en' => 'Secret', 'ar' => 'سر'], 'status' => ProductStatus::Draft]);
+        $draft->variants()->create(['sku' => 'SECRET', 'price' => 100000]);
+
+        $this->getJson("/en/products/{$product->slug}/quick")
+            ->assertOk()
+            ->assertJsonPath('name', 'Tote')
+            ->assertJsonCount(1, 'variants')
+            ->assertJsonMissingPath('variants.0.stock_quantity');
+        $this->getJson("/ar/products/{$product->slug}/quick")->assertJsonPath('name', 'توت');
+        $this->getJson("/en/products/{$draft->slug}/quick")->assertNotFound();
+    }
+
     public function test_button_only_addresses_redirect_instead_of_erroring(): void
     {
         $this->get('/cart/items')->assertRedirect();

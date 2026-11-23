@@ -5,10 +5,10 @@ namespace App\Models;
 use App\Enums\AttributeType;
 use App\Exceptions\ModelInUseException;
 use App\Models\Concerns\GeneratesUniqueSlug;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Concerns\HasTranslations;
 
 /**
  * An option type such as Colour or Size. Named ProductAttribute because

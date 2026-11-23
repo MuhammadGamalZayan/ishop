@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { AlertCircle, Loader2, Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { AddToCartButton } from '@/components/shop/add-to-cart-button';
 import { useCart } from '@/components/shop/cart-context';
 import { Drawer } from '@/components/shop/drawer';
 import { ProductImage } from '@/components/shop/product-image';
@@ -49,13 +50,13 @@ export function CartDrawer() {
                     </>
                 ) : (
                     <>
-                        {/* TODO(checkout page): turn into a link to the checkout route once it exists. */}
-                        <button type="button" disabled className="store-caps flex h-13 cursor-not-allowed items-center justify-center gap-3 bg-ink/60 text-sm text-white">
+                        {/* A plain link: guests go through sign-in and come back here (intended URL). */}
+                        <a href={`/${locale}/checkout`} className="store-caps flex h-13 items-center justify-center gap-3 bg-ink text-sm text-white">
                             <span>{t('cart.checkout')}</span>
                             <span aria-hidden="true">·</span>
                             <span>{money(cartDrawer?.subtotal ?? 0, locale)}</span>
-                        </button>
-                        <p className="text-center text-xs text-subtle">{t('cart.checkout_soon')}</p>
+                        </a>
+                        <p className="text-center text-xs text-subtle">{t('cart.login_note')}</p>
                     </>
                 )}
             </div>
@@ -143,13 +144,19 @@ export function CartDrawer() {
                             </Link>
                             <span className="text-[13px] text-subtle">{money(cartDrawer.upsell.price, locale)}</span>
                             {cartDrawer.upsell.quick_variant_id ? (
-                                <button type="button" onClick={() => cart.add(cartDrawer.upsell!.quick_variant_id!)} className="self-start text-[13px] underline underline-offset-4">
-                                    {t('cart.add')}
-                                </button>
+                                <AddToCartButton variantId={cartDrawer.upsell.quick_variant_id} label={t('cart.add')} className="self-start text-[13px] underline underline-offset-4 disabled:opacity-60" />
                             ) : (
-                                <Link href={cartDrawer.upsell.url} onClick={cart.closeDrawer} className="self-start text-[13px] underline underline-offset-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        cart.closeDrawer();
+                                        cart.openQuick(cartDrawer.upsell!.url);
+                                    }}
+                                    aria-haspopup="dialog"
+                                    className="self-start text-[13px] underline underline-offset-4"
+                                >
                                     {t('product.choose_options')}
-                                </Link>
+                                </button>
                             )}
                         </div>
                     </div>

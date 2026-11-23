@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Exceptions\CategoryInUseException;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,6 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
-use App\Models\Concerns\HasTranslations;
 
 #[Fillable(['parent_id', 'name', 'slug', 'description', 'is_active', 'sort_order', 'meta_title', 'meta_description'])]
 class Category extends Model implements HasMedia

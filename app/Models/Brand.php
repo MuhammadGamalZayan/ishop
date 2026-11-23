@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Exceptions\ModelInUseException;
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,6 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
-use App\Models\Concerns\HasTranslations;
 
 #[Fillable(['name', 'slug', 'description', 'is_active'])]
 class Brand extends Model implements HasMedia

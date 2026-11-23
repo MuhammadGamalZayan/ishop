@@ -1,3 +1,4 @@
+import { useTr } from '@/lib/shop';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -12,29 +13,30 @@ import {
 import PasskeyVerify from '@/components/passkey-verify';
 
 export default function ConfirmPassword() {
+    const tr = useTr();
     return (
         <>
-            <Head title="Confirm password" />
+            <Head title={tr("Confirm password")} />
 
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
                     submit: confirmStore(),
                 }}
-                label="Confirm with passkey"
-                loadingLabel="Confirming..."
-                separator="Or confirm with password"
+                label={tr("Confirm with passkey")}
+                loadingLabel={tr("Confirming...")}
+                separator={tr("Or confirm with password")}
             />
 
             <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{tr("Password")}</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
-                                placeholder="Password"
+                                placeholder={tr("Password")}
                                 autoComplete="current-password"
                                 autoFocus
                             />
@@ -49,7 +51,7 @@ export default function ConfirmPassword() {
                                 data-test="confirm-password-button"
                             >
                                 {processing && <Spinner />}
-                                Confirm password
+                                {tr("Confirm password")}
                             </Button>
                         </div>
                     </div>

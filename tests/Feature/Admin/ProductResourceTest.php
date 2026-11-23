@@ -14,7 +14,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
-use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use App\Models\User;
 use App\Services\Catalog\VariantGenerator;
@@ -24,6 +23,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class ProductResourceTest extends TestCase
@@ -208,7 +208,7 @@ class ProductResourceTest extends TestCase
 
         $this->admin->givePermissionTo([]); // admin role has inventory rights; remove them for this check
         $this->admin->roles()->first()->revokePermissionTo(['inventory.adjust', 'inventory.view']);
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $this->relation($product)
             ->assertTableActionHidden('adjustStock', $variant)

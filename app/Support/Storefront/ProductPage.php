@@ -47,6 +47,23 @@ class ProductPage
         ];
     }
 
+    /** The subset the quick-add window needs (no description, no suggestions). */
+    public function quick(Product $product): array
+    {
+        $variants = $product->variants;
+        $attributes = $this->attributes($variants);
+
+        return [
+            'name' => $product->name,
+            'url' => route('shop.product', ['slug' => $product->slug]),
+            'images' => $this->images($product, 'images'),
+            'colour_images' => $this->colourImages($product, $attributes),
+            'attributes' => $attributes,
+            'variants' => $variants->map(fn (ProductVariant $v): array => $this->variant($v))->values()->all(),
+            'default_variant_id' => ($variants->firstWhere('is_default', true) ?? $variants->first())->getKey(),
+        ];
+    }
+
     private function variant(ProductVariant $variant): array
     {
         $inStock = $variant->isInStock();

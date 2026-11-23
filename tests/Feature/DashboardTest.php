@@ -6,22 +6,20 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/** /dashboard is where Fortify lands after sign-in; it forwards to the right place. */
 class DashboardTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_guests_are_redirected_to_the_login_page()
     {
-        $response = $this->get(route('dashboard'));
-        $response->assertRedirect(route('login'));
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
     }
 
-    public function test_authenticated_users_can_visit_the_dashboard()
+    public function test_customers_are_sent_to_their_orders()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $response = $this->get(route('dashboard'));
-        $response->assertOk();
+        $this->actingAs(User::factory()->create())
+            ->get(route('dashboard'))
+            ->assertRedirect(route('shop.account.orders', ['locale' => 'en']));
     }
 }

@@ -1,15 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronDown, Heart } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useCart } from '@/components/shop/cart-context';
+import { useState } from 'react';
+import { AddToCartButton } from '@/components/shop/add-to-cart-button';
 import { ProductCard } from '@/components/shop/product-card';
 import { ProductImage } from '@/components/shop/product-image';
+import { VariantOptions, useVariantPicker } from '@/components/shop/variant-picker';
+import type { OptionAttribute, PickVariant } from '@/components/shop/variant-picker';
 import { money, useShop, useT } from '@/lib/shop';
 import type { ProductCardData } from '@/lib/shop';
 
-type Value = { id: number; name: string; hex: string | null };
-type Attribute = { id: number; name: string; type: 'color' | 'select'; values: Value[] };
-type Variant = { id: number; sku: string; price: number; compare_at: number | null; values: number[]; in_stock: boolean; left: number | null };
+
+type Attribute = OptionAttribute;
+type Variant = PickVariant;
 type Image = { large: string; thumb: string };
 type Product = {
     id: number;
@@ -34,49 +36,18 @@ type Product = {
 export default function ProductPage({ product }: { product: Product }) {
     const t = useT();
     const { locale, wishlist } = useShop();
-    const cart = useCart();
 
-    const defaultVariant = product.variants.find((v) => v.id === product.default_variant_id) ?? product.variants[0];
-    const [selected, setSelected] = useState<Record<number, number | null>>(() =>
-        Object.fromEntries(product.attributes.map((a) => [a.id, defaultVariant.values.find((id) => a.values.some((v) => v.id === id)) ?? null])),
-    );
+    const picker = useVariantPicker(product.attributes, product.variants, product.default_variant_id);
+    const { selected, variant, missing, ready, shown } = picker;
     const [imageIndex, setImageIndex] = useState(0);
     const [open, setOpen] = useState<Record<string, boolean>>({});
-
-    const variant = useMemo(
-        () => (product.attributes.length === 0 ? defaultVariant : product.variants.find((v) => product.attributes.every((a) => selected[a.id] !== null && v.values.includes(selected[a.id]!)))),
-        [selected, product, defaultVariant],
-    );
-
-    /** Is there an in-stock variant with this value, given the other choices? */
-    const available = (attributeId: number, valueId: number) =>
-        product.variants.some(
-            (v) => v.in_stock && v.values.includes(valueId) && product.attributes.every((a) => a.id === attributeId || selected[a.id] === null || v.values.includes(selected[a.id]!)),
-        );
 
     const colourAttr = product.attributes.find((a) => a.type === 'color');
     const colourId = colourAttr ? selected[colourAttr.id] : null;
     const images = [...((colourId && product.colour_images[colourId]) || []), ...product.images];
     const current = images[Math.min(imageIndex, images.length - 1)];
     const swatch = colourAttr?.values.find((v) => v.id === colourId)?.hex ?? null;
-
-    const missing = product.attributes.find((a) => selected[a.id] === null);
-    const ready = !!variant && variant.in_stock;
-    const shown = variant ?? defaultVariant;
     const saved = wishlist.includes(product.id);
-
-    const pick = (attributeId: number, valueId: number | null) => {
-        setSelected({ ...selected, [attributeId]: valueId });
-        setImageIndex(0);
-    };
-
-    const status = !variant
-        ? { text: missing ? t('pdp.pick_first', { option: missing.name }) : t('pdp.unavailable'), colour: missing ? '#9a9a9a' : '#b3261e' }
-        : !variant.in_stock
-          ? { text: t('pdp.unavailable'), colour: '#b3261e' }
-          : variant.left !== null
-            ? { text: t('pdp.left', { count: variant.left }), colour: '#b26a00' }
-            : { text: t('pdp.in_stock'), colour: '#2e7d32' };
 
     return (
         <>
@@ -125,74 +96,15 @@ export default function ProductPage({ product }: { product: Product }) {
                         <span className="text-xs text-subtle">{t('pdp.vat')}</span>
                     </div>
 
-                    {product.attributes.map((attribute) => {
-                        const value = selected[attribute.id];
-                        const valueName = attribute.values.find((v) => v.id === value)?.name;
-
-                        return attribute.type === 'color' ? (
-                            <fieldset key={attribute.id} className="flex flex-col gap-3">
-                                <legend className="mb-3 text-sm">
-                                    <span className="text-subtle">{attribute.name}:</span> {valueName}
-                                </legend>
-                                <div className="flex flex-wrap gap-2.5">
-                                    {attribute.values.map((v) => {
-                                        const on = v.id === value;
-                                        const ok = available(attribute.id, v.id);
-
-                                        return (
-                                            <button
-                                                key={v.id}
-                                                type="button"
-                                                onClick={() => pick(attribute.id, v.id)}
-                                                aria-pressed={on}
-                                                aria-label={ok ? v.name : t('pdp.sold_out_option', { name: v.name })}
-                                                title={ok ? v.name : t('pdp.sold_out_option', { name: v.name })}
-                                                className={`relative size-11 border p-[3px] ${on ? 'border-ink' : 'border-transparent'}`}
-                                            >
-                                                <span className={`block h-full w-full outline outline-1 outline-black/10 ${ok ? '' : 'opacity-40'}`} style={{ background: v.hex ?? '#ccc' }} />
-                                                {!ok && <span aria-hidden="true" className="absolute inset-0 m-auto h-px w-[130%] -translate-x-[12%] rotate-45 bg-ink" />}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </fieldset>
-                        ) : (
-                            <label key={attribute.id} className="flex flex-col gap-2 text-sm">
-                                <span className="text-subtle">{attribute.name}</span>
-                                <select
-                                    value={value ?? ''}
-                                    onChange={(e) => pick(attribute.id, e.target.value ? Number(e.target.value) : null)}
-                                    className="h-12.5 border border-[#c9c9c9] bg-white px-3.5 text-[15px]"
-                                >
-                                    <option value="">{t('pdp.choose')}</option>
-                                    {attribute.values.map((v) => {
-                                        const ok = available(attribute.id, v.id);
-
-                                        return (
-                                            <option key={v.id} value={v.id} disabled={!ok}>
-                                                {ok ? v.name : t('pdp.sold_out_option', { name: v.name })}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            </label>
-                        );
-                    })}
-
-                    <p role="status" className="flex items-center gap-2 text-[13px] text-[#3a3a3a]">
-                        <span aria-hidden="true" className="size-2 rounded-full" style={{ background: status.colour }} />
-                        {status.text}
-                    </p>
+                    <VariantOptions attributes={product.attributes} picker={picker} onPick={() => setImageIndex(0)} />
 
                     <div className="flex gap-2.5">
-                        <button
-                            type="button"
-                            disabled={!ready || cart.busy}
-                            onClick={() => variant && cart.add(variant.id)}
+                        <AddToCartButton
+                            variantId={variant?.id ?? null}
+                            ready={ready}
+                            label={ready ? t("pdp.add") : missing ? t("pdp.pick_first", { option: missing.name }) : t("product.sold_out")}
                             className="store-caps h-13.5 flex-1 border border-ink text-sm transition enabled:hover:bg-ink enabled:hover:text-white disabled:cursor-not-allowed disabled:border-[#9a9a9a] disabled:text-[#6b6b6b]"
-                        >
-                            {ready ? t('pdp.add') : missing ? t('pdp.pick_first', { option: missing.name }) : t('product.sold_out')}
-                        </button>
+                        />
                         <button
                             type="button"
                             onClick={() => router.post(`/wishlist/${product.id}`, {}, { preserveScroll: true, preserveState: true })}

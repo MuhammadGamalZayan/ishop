@@ -4,9 +4,9 @@ namespace App\Filament\Admin\Concerns;
 
 use Closure;
 use Filament\Forms\Components\Field;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**

@@ -77,6 +77,18 @@ export function useT() {
     };
 }
 
+/**
+ * For the starter kit's account/auth pages, written in English: tr('Password')
+ * returns the Arabic from shop.php `ui` when the page is in Arabic, else the
+ * English text itself (so nothing goes blank if a phrase isn't translated yet).
+ */
+export function useTr() {
+    const { t, locale } = useShop();
+    const ui = (t.ui ?? {}) as Record<string, string>;
+
+    return (english: string): string => (locale === 'ar' && ui[english]) || english;
+}
+
 /** Piastres → "EGP 1,250" / "1,250 ج.م" (decimals only when there are any). */
 export function money(piastres: number, locale: 'en' | 'ar'): string {
     const pounds = piastres / 100;
@@ -93,5 +105,6 @@ export function otherLanguageUrl(locale: 'en' | 'ar'): string {
     const other = locale === 'ar' ? 'en' : 'ar';
     const { pathname, search } = window.location;
 
-    return /^\/(en|ar)(\/|$)/.test(pathname) ? pathname.replace(/^\/(en|ar)/, `/${other}`) + search : `/${other}`;
+    // Pages without a language prefix (sign in, settings) switch through /locale/{lang}, which comes back here.
+    return /^\/(en|ar)(\/|$)/.test(pathname) ? pathname.replace(/^\/(en|ar)/, `/${other}`) + search : `/locale/${other}`;
 }

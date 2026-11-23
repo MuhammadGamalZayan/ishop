@@ -49,7 +49,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => app()->getLocale(),
             'dir' => app()->getLocale() === 'ar' ? 'rtl' : 'ltr',
             // Storefront text (lang/{en,ar}/shop.php) for the React `t()` helper.
-            't' => fn (): array => trans('shop'),
+            't' => fn (): array => trans('shop') + ['ui' => app()->getLocale() === 'ar' ? trans('ui') : []],
             'nav' => fn (): array => app(Catalog::class)->navigation(),
             // Lazy: one small query, only when the page renders the header badge.
             'cart' => fn (): array => ['count' => app(CartService::class)->count()],

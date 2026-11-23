@@ -15,8 +15,9 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('ISHOP_ADMIN_EMAIL');
-        $password = env('ISHOP_ADMIN_PASSWORD');
+        // Through config, not env(): env() returns null once `php artisan optimize` caches the config.
+        $email = config('ishop.admin.email');
+        $password = config('ishop.admin.password');
 
         if (! $email || ! $password) {
             if (! app()->isLocal()) {

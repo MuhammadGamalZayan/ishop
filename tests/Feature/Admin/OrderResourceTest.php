@@ -8,6 +8,7 @@ use App\Filament\Admin\Resources\Orders\OrderResource;
 use App\Filament\Admin\Resources\Orders\Pages\ListOrders;
 use App\Filament\Admin\Resources\Orders\Pages\ViewOrder;
 use App\Models\Order;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\Checkout\PlaceOrder;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -109,7 +110,7 @@ class OrderResourceTest extends CheckoutTestCase
             ->assertHasNoActionErrors();
 
         $this->assertSame(OrderStatus::Cancelled, $order->fresh()->status);
-        $this->assertSame(5, \App\Models\ProductVariant::find($variantId)->stock_quantity);
+        $this->assertSame(5, ProductVariant::find($variantId)->stock_quantity);
     }
 
     public function test_without_status_permission_the_buttons_are_hidden(): void

@@ -1,14 +1,18 @@
 import { Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { AddToCartButton } from '@/components/shop/add-to-cart-button';
 import { useCart } from '@/components/shop/cart-context';
 import { ProductImage } from '@/components/shop/product-image';
 import { money, useShop, useT } from '@/lib/shop';
 import type { ProductCardData } from '@/lib/shop';
 
+const PLUS = 'absolute end-0 bottom-0 flex size-11 items-center justify-center bg-white transition hover:bg-ink hover:text-white disabled:opacity-70';
+
 /**
  * Card from the mockups: badge, image (second photo on hover), "+" quick add,
- * name in spaced capitals, price. A product with nothing to choose is added
- * straight away; one with options opens its page to pick colour/size.
+ * name in spaced capitals, price. "+" adds a product with nothing to choose
+ * straight away (spinner until it is in the cart); for one with options it
+ * opens the quick-add window to pick colour / size without leaving the page.
  */
 export function ProductCard({ product }: { product: ProductCardData }) {
     const { locale } = useShop();
@@ -16,6 +20,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     const cart = useCart();
     const badge = product.badge ? t(product.badge === 'sold_out' ? 'product.sold_out' : `product.badges.${product.badge}`) : null;
     const price = product.price_varies ? t('product.from', { price: money(product.price, locale) }) : money(product.price, locale);
+    const adding = product.quick_variant_id !== null && cart.adding === product.quick_variant_id;
 
     return (
         <article className="group flex flex-col gap-3.5">
@@ -26,23 +31,16 @@ export function ProductCard({ product }: { product: ProductCardData }) {
                 </Link>
                 {product.in_stock &&
                     (product.quick_variant_id ? (
-                        <button
-                            type="button"
-                            onClick={() => cart.add(product.quick_variant_id!)}
-                            disabled={cart.busy}
-                            aria-label={`${t('product.quick_add')}: ${product.name}`}
-                            className="absolute end-0 bottom-0 flex size-11 items-center justify-center bg-white transition hover:bg-ink hover:text-white disabled:opacity-60"
-                        >
-                            <Plus className="size-4" strokeWidth={1.4} />
-                        </button>
+                        <AddToCartButton
+                            variantId={product.quick_variant_id}
+                            ariaLabel={`${t('product.quick_add')}: ${product.name}`}
+                            label={!adding && <Plus className="size-4" strokeWidth={1.4} aria-hidden="true" />}
+                            className={`${PLUS} gap-0`}
+                        />
                     ) : (
-                        <Link
-                            href={product.url}
-                            aria-label={`${t('product.choose_options')}: ${product.name}`}
-                            className="absolute end-0 bottom-0 flex size-11 items-center justify-center bg-white transition hover:bg-ink hover:text-white"
-                        >
-                            <Plus className="size-4" strokeWidth={1.4} />
-                        </Link>
+                        <button type="button" onClick={() => cart.openQuick(product.url)} aria-label={`${t('product.quick_add')}: ${product.name}`} aria-haspopup="dialog" className={PLUS}>
+                            <Plus className="size-4" strokeWidth={1.4} aria-hidden="true" />
+                        </button>
                     ))}
             </div>
             <Link href={product.url} className="flex flex-col gap-1.5 text-center">

@@ -37,4 +37,10 @@ return [
     // Admins must confirm two-factor auth before entering Filament (skipped only in `local`).
     'admin_requires_2fa' => env('ISHOP_ADMIN_REQUIRES_2FA', true),
 
+    // First super-admin, created by AdminUserSeeder. Required in production.
+    'admin' => [
+        'email' => env('ISHOP_ADMIN_EMAIL'),
+        'password' => env('ISHOP_ADMIN_PASSWORD'),
+    ],
+
 ];

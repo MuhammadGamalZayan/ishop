@@ -8,6 +8,7 @@ use App\Models\CartItem;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Support\GuestToken;
+use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -199,7 +200,7 @@ class CartService
         }
     }
 
-    private function guestExpiry(): \Carbon\CarbonInterface
+    private function guestExpiry(): CarbonInterface
     {
         return now()->addDays((int) config('ishop.guest_cart_days'));
     }

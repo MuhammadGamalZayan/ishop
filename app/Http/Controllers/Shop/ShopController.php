@@ -8,10 +8,12 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductAttributeValue;
 use App\Models\ProductVariant;
+use App\Services\Cart\WishlistService;
 use App\Support\Storefront\Catalog;
 use App\Support\Storefront\ProductPage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -144,7 +146,31 @@ class ShopController extends Controller
         ]);
     }
 
+    /** Saved products (guests too, by the cookie token). Products no longer sold drop out. */
+    public function wishlist(): Response
+    {
+        $ids = app(WishlistService::class)->productIds();
+
+        return Inertia::render('shop/wishlist', [
+            'products' => $this->catalog->cards($this->catalog->cardQuery()->whereKey($ids)->get()),
+        ]);
+    }
+
     public function product(string $slug): Response
+    {
+        return Inertia::render('shop/product', [
+            'product' => app(ProductPage::class)->data($this->liveProduct($slug)),
+        ]);
+    }
+
+    /** What the quick-add window needs: options, variants, images, price (JSON, no page). */
+    public function quick(string $slug): JsonResponse
+    {
+        return response()->json(app(ProductPage::class)->quick($this->liveProduct($slug)));
+    }
+
+    /** A published product with at least one active variant, else 404. */
+    private function liveProduct(string $slug): Product
     {
         $product = Product::query()
             ->published()
@@ -159,9 +185,7 @@ class ShopController extends Controller
 
         abort_if($product->variants->isEmpty(), 404);
 
-        return Inertia::render('shop/product', [
-            'product' => app(ProductPage::class)->data($product),
-        ]);
+        return $product;
     }
 
     private function orderByBestSellers(Builder $query): void

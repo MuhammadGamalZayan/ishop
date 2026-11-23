@@ -13,10 +13,11 @@ use App\Exceptions\CouponException;
 use App\Models\User;
 use App\Services\Checkout\CheckoutData;
 use App\Services\Checkout\PlaceOrder;
+use Illuminate\Contracts\Console\Kernel;
 
 require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$app->make(Kernel::class)->bootstrap();
 
 [, $userId, $key, $startAt] = $argv;
 $coupon = $argv[4] ?? null;

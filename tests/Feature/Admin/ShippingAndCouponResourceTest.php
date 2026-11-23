@@ -19,6 +19,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -108,7 +109,7 @@ class ShippingAndCouponResourceTest extends TestCase
     private function addressColumns(): array
     {
         $columns = [];
-        foreach (\Illuminate\Support\Facades\Schema::getColumns('addresses') as $column) {
+        foreach (Schema::getColumns('addresses') as $column) {
             if (! $column['nullable'] && $column['default'] === null && ! in_array($column['name'], ['id', 'user_id', 'governorate_id', 'shipping_area_id'], true)) {
                 $columns[$column['name']] = str_contains($column['type_name'], 'int') ? 1 : 'x';
             }

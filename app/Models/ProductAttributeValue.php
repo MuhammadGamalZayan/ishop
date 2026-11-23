@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Exceptions\ModelInUseException;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use App\Models\Concerns\GeneratesUniqueSlug;
+use App\Models\Concerns\HasTranslations;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Concerns\HasTranslations;
 
 /** One option value such as Red or XL. */
 #[Fillable(['attribute_id', 'value', 'slug', 'color_hex', 'sort_order'])]

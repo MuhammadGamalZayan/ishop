@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { CartDrawer } from '@/components/shop/cart-drawer';
 import { CartProvider } from '@/components/shop/cart-context';
+import { QuickAdd } from '@/components/shop/quick-add';
 import { StoreFooter } from '@/components/shop/store-footer';
 import { StoreHeader } from '@/components/shop/store-header';
 import { initializeTheme } from '@/hooks/use-appearance';
@@ -33,6 +34,7 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
                 </main>
                 <StoreFooter />
                 <CartDrawer />
+                <QuickAdd />
             </div>
         </CartProvider>
     );
