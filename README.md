@@ -133,7 +133,8 @@ cp .env.example .env
 php artisan key:generate
 # set DB_CONNECTION / DB_DATABASE in .env, create the database (utf8mb4_unicode_ci)
 php artisan migrate --seed                         # roles, governorates, VAT, first admin
-php artisan db:seed --class=DemoCatalogSeeder      # optional: sample catalog + shipping areas
+php artisan storage:link                           # serve uploaded product photos
+php artisan db:seed --class=DemoCatalogSeeder      # optional: sample catalog, photos, shipping areas
 npm run build
 ```
 
@@ -293,7 +294,8 @@ cp .env.example .env
 php artisan key:generate
 # اضبط DB_CONNECTION و DB_DATABASE في ملف .env، وأنشئ قاعدة البيانات (utf8mb4_unicode_ci)
 php artisan migrate --seed                         # الأدوار، والمحافظات، والضريبة، وأول مدير
-php artisan db:seed --class=DemoCatalogSeeder      # اختياري: منتجات تجريبية ومناطق شحن
+php artisan storage:link                           # لعرض صور المنتجات المرفوعة
+php artisan db:seed --class=DemoCatalogSeeder      # اختياري: منتجات تجريبية بصورها ومناطق شحن
 npm run build
 ```
 

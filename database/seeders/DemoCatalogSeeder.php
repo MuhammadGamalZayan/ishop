@@ -18,7 +18,7 @@ use RuntimeException;
 /**
  * Sample catalog for local development and screenshots: categories,
  * colour/size options, ~12 products with variants and stock, and a few
- * shipping areas. No images (the storefront shows placeholders).
+ * shipping areas, then the demo photos (DemoImagesSeeder).
  *
  *   php artisan db:seed --class=DemoCatalogSeeder
  *
@@ -138,6 +138,8 @@ class DemoCatalogSeeder extends Seeder
         Product::query()->where('slug', 'compact-weekender')->first()?->related()->attach(Product::query()->whereIn('slug', ['card-holder'])->pluck('id'));
 
         $this->command?->info('Demo catalog created: '.Product::count().' products.');
+
+        $this->call(DemoImagesSeeder::class);
     }
 
     private function shipping(): void
