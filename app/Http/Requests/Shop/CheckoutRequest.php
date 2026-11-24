@@ -16,7 +16,7 @@ class CheckoutRequest extends FormRequest
     {
         if (is_string($this->input('address.phone'))) {
             $address = $this->input('address');
-            $address['phone'] = preg_replace('/\D+/', '', $address['phone']);
+            $address['phone'] = AddressRequest::normalizePhone($address['phone']);
             $this->merge(['address' => $address]);
         }
     }

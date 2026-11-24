@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { useTr } from '@/lib/shop';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
@@ -23,6 +24,7 @@ export default function TwoFactorRecoveryCodes({
     fetchRecoveryCodes,
     errors,
 }: Props) {
+    const tr = useTr();
     const [codesAreVisible, setCodesAreVisible] = useState<boolean>(false);
     const codesSectionRef = useRef<HTMLDivElement | null>(null);
     const canRegenerateCodes = recoveryCodesList.length > 0 && codesAreVisible;
@@ -112,7 +114,7 @@ export default function TwoFactorRecoveryCodes({
                                     ref={codesSectionRef}
                                     className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
                                     role="list"
-                                    aria-label="Recovery codes"
+                                    aria-label={tr("Recovery codes")}
                                 >
                                     {recoveryCodesList.length ? (
                                         recoveryCodesList.map((code, index) => (
@@ -127,7 +129,7 @@ export default function TwoFactorRecoveryCodes({
                                     ) : (
                                         <div
                                             className="space-y-2"
-                                            aria-label="Loading recovery codes"
+                                            aria-label={tr("Loading recovery codes")}
                                         >
                                             {Array.from(
                                                 { length: 8 },
@@ -149,7 +151,7 @@ export default function TwoFactorRecoveryCodes({
                                         access your account and will be removed
                                         after use. If you need more, click{' '}
                                         <span className="font-bold">
-                                            Regenerate codes
+                                            {tr("Regenerate codes")}
                                         </span>{' '}
                                         above.
                                     </p>

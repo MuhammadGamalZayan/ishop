@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { useTr } from '@/lib/shop';
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
@@ -15,6 +16,7 @@ export type Props = {
 };
 
 export default function ManageTwoFactor(props: Props) {
+    const tr = useTr();
     const requiresConfirmation = props.requiresConfirmation ?? false;
     const twoFactorEnabled = props.twoFactorEnabled ?? false;
 
@@ -48,8 +50,8 @@ export default function ManageTwoFactor(props: Props) {
         <div className="space-y-6">
             <Heading
                 variant="small"
-                title="Two-factor authentication"
-                description="Manage your two-factor authentication settings"
+                title={tr("Two-factor authentication")}
+                description={tr("Manage your two-factor authentication settings")}
             />
             {twoFactorEnabled ? (
                 <div className="flex flex-col items-start justify-start space-y-4">
@@ -67,7 +69,7 @@ export default function ManageTwoFactor(props: Props) {
                                     type="submit"
                                     disabled={processing}
                                 >
-                                    Disable 2FA
+                                    {tr("Disable 2FA")}
                                 </Button>
                             )}
                         </Form>
@@ -92,7 +94,7 @@ export default function ManageTwoFactor(props: Props) {
                         {hasSetupData ? (
                             <Button onClick={() => setShowSetupModal(true)}>
                                 <ShieldCheck />
-                                Continue setup
+                                {tr("Continue setup")}
                             </Button>
                         ) : (
                             <Form
@@ -101,7 +103,7 @@ export default function ManageTwoFactor(props: Props) {
                             >
                                 {({ processing }) => (
                                     <Button type="submit" disabled={processing}>
-                                        Enable 2FA
+                                        {tr("Enable 2FA")}
                                     </Button>
                                 )}
                             </Form>

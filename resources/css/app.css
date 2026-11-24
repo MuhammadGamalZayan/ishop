@@ -160,6 +160,36 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    /*
+     * Hand cursor on everything that can be clicked, site-wide (Tailwind 4
+     * no longer does this for buttons), and "not allowed" when it's disabled.
+     * In the base layer, so a utility like cursor-default still wins.
+     */
+    a[href],
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='tab'],
+    [role='menuitem'],
+    [role='option'],
+    summary,
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='file']:not(:disabled),
+    label:has(> input[type='checkbox']:not(:disabled)),
+    label:has(> input[type='radio']:not(:disabled)),
+    label[for] {
+        cursor: pointer;
+    }
+
+    button:disabled,
+    [aria-disabled='true'],
+    select:disabled,
+    input:disabled {
+        cursor: not-allowed;
+    }
 }
 
 /* ---- Storefront -------------------------------------------------------- */

@@ -29,7 +29,7 @@ The store sells in **Egyptian pounds**, in **Arabic and English** (the Arabic si
 | Production deployment kit (release zip, FastComet / cPanel guide) | ✅ |
 | SEO (meta, JSON-LD, sitemap), custom error pages | ⏳ Planned |
 
-Automated tests: **180 passing**, plus **4 concurrency tests** that race real PHP processes against MySQL/MariaDB.
+Automated tests: **185 passing**, plus **4 concurrency tests** that race real PHP processes against MySQL/MariaDB.
 
 ### Technology stack
 
@@ -193,7 +193,7 @@ Step-by-step guide for FastComet / cPanel: **[deploy/DEPLOY.md](deploy/DEPLOY.md
 | أدوات النشر (ملف الإصدار، ودليل FastComet و cPanel) | ✅ |
 | تحسين محركات البحث (الوسوم الوصفية، JSON-LD، خريطة الموقع)، وصفحات أخطاء مخصصة | ⏳ مخطط له |
 
-الاختبارات الآلية: **180 اختبارًا ناجحًا**، إضافة إلى **4 اختبارات تزامن** تُشغِّل عمليات PHP حقيقية في اللحظة نفسها على MySQL/MariaDB.
+الاختبارات الآلية: **185 اختبارًا ناجحًا**، إضافة إلى **4 اختبارات تزامن** تُشغِّل عمليات PHP حقيقية في اللحظة نفسها على MySQL/MariaDB.
 
 ### التقنيات المستخدمة
 

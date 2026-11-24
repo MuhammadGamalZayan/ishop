@@ -25,6 +25,10 @@ class DemoImagesSeeder extends Seeder
             throw new RuntimeException('DemoImagesSeeder is for local development only.');
         }
 
+        if (app()->runningUnitTests()) {
+            return; // tests don't need photo files (and shouldn't write them to storage)
+        }
+
         $folder = database_path('seeders/demo-images');
         $added = 0;
 

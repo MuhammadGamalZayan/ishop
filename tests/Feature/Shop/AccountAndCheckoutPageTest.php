@@ -161,4 +161,13 @@ class AccountAndCheckoutPageTest extends CheckoutTestCase
         $this->get('/locale/ar?return='.urlencode('/\\evil.example'))->assertRedirect('/ar');
         $this->get('/locale/ar?return='.urlencode('https://evil.example'))->assertRedirect('/ar');
     }
+
+    public function test_phone_numbers_typed_in_arabic_digits_or_with_spaces_are_accepted(): void
+    {
+        $this->actingAs($this->customer)
+            ->post('/account/addresses', ['phone' => '٠١٠ ١٢٣٤-٥٦٧٨'] + $this->address())
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('01012345678', $this->customer->addresses()->latest('id')->value('phone'));
+    }
 }

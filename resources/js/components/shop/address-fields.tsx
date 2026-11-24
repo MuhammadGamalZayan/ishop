@@ -33,6 +33,25 @@ export const emptyAddress: AddressValues = {
 
 const input = 'h-12 w-full border border-[#d9d9d9] bg-white px-3.5 text-[15px] text-ink';
 
+/** Red star after the label of a required field (the * itself is hidden from screen readers; the input is `required`). */
+export function Req() {
+    return (
+        <span className="text-alert" aria-hidden="true">
+            {' '}*
+        </span>
+    );
+}
+
+/** Egyptian mobile as the server wants it: Arabic digits → 0-9, spaces and dashes removed. */
+export function normalizePhone(value: string): string {
+    return value.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[\s\-().]/g, '');
+}
+
+/** Same rule as AddressRequest::PHONE. */
+export function phoneValid(value: string): boolean {
+    return /^01[0125]\d{8}$/.test(normalizePhone(value));
+}
+
 /**
  * Delivery address fields (checkout and My account): governorate first,
  * then only the areas we deliver to there, each with its price.
@@ -60,7 +79,10 @@ export function AddressFields({
 
     const field = (key: keyof AddressValues, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
         <label className="flex flex-col gap-1.5 text-[13px] text-subtle">
-            {t(`address.${key}`)}
+            <span>
+                {t(`address.${key}`)}
+                {props.required && <Req />}
+            </span>
             <input value={String(values[key] ?? '')} onChange={(e) => set(key, e.target.value)} aria-invalid={!!error(key)} className={input} {...props} />
             {error(key) && <span className="text-xs text-alert">{error(key)}</span>}
         </label>
@@ -75,7 +97,10 @@ export function AddressFields({
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5 text-[13px] text-subtle">
-                    {t('address.governorate')}
+                    <span>
+                        {t('address.governorate')}
+                        <Req />
+                    </span>
                     <select
                         value={values.governorate_id}
                         onChange={(e) => onChange({ ...values, governorate_id: e.target.value ? Number(e.target.value) : '', shipping_area_id: '' })}
@@ -91,7 +116,10 @@ export function AddressFields({
                     </select>
                 </label>
                 <label className="flex flex-col gap-1.5 text-[13px] text-subtle">
-                    {t('address.shipping_area_id')}
+                    <span>
+                        {t('address.shipping_area_id')}
+                        <Req />
+                    </span>
                     <select
                         value={values.shipping_area_id}
                         onChange={(e) => set('shipping_area_id', e.target.value ? Number(e.target.value) : '')}
@@ -118,7 +146,10 @@ export function AddressFields({
             </div>
             {field('landmark', { maxLength: 255 })}
             <label className="flex flex-col gap-1.5 text-[13px] text-subtle">
-                {t('address.phone')}
+                <span>
+                    {t('address.phone')}
+                    <Req />
+                </span>
                 <input
                     type="tel"
                     inputMode="tel"
@@ -144,9 +175,9 @@ export function addressPayload(values: AddressValues): Record<string, string | n
     const { governorate_id: _ignored, ...rest } = values;
     void _ignored;
 
-    return Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v === '' ? null : v]));
+    return Object.fromEntries(Object.entries(rest).map(([k, v]) => [k, v === '' ? null : k === 'phone' ? normalizePhone(String(v)) : v]));
 }
 
 export function addressComplete(v: AddressValues): boolean {
-    return !!(v.first_name && v.last_name && v.phone && v.shipping_area_id && v.street && v.building);
+    return !!(v.first_name.trim() && v.last_name.trim() && phoneValid(v.phone) && v.shipping_area_id && v.street.trim() && v.building.trim());
 }

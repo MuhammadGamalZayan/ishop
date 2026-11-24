@@ -2,7 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { AlertCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { AddressFields, addressComplete, addressPayload, emptyAddress } from '@/components/shop/address-fields';
+import { AddressFields, addressComplete, addressPayload, emptyAddress, phoneValid } from '@/components/shop/address-fields';
+import { CheckoutChecklist } from '@/components/shop/checkout-checklist';
 import type { AddressValues, Governorate } from '@/components/shop/address-fields';
 import { CardPayment } from '@/components/shop/card-payment';
 import type { CardPay, StripeConfig } from '@/components/shop/card-payment';
@@ -84,6 +85,19 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
     const refreshQuote = (id: number | null | '') => {
         if (id && id !== areaId) router.reload({ only: ['quote', 'areaId'], data: { area: id } });
     };
+
+    // Same conditions as the Continue button, shown as a list that turns green.
+    const checklist = [
+        { key: 'cart', label: t('checkout.check_cart'), done: problems.length === 0 },
+        ...(usingSaved
+            ? [{ key: 'saved', label: t('checkout.check_saved'), done: !!area }]
+            : [
+                  { key: 'name', label: t('checkout.check_name'), done: !!(values.first_name.trim() && values.last_name.trim()) },
+                  { key: 'phone', label: t('checkout.check_phone'), done: phoneValid(values.phone) },
+                  { key: 'area', label: t('checkout.check_area'), done: !!area },
+                  { key: 'address', label: t('checkout.check_address'), done: !!(values.street.trim() && values.building.trim()) },
+              ]),
+    ];
 
     const blocked = problems.length > 0;
     const missingFields = !usingSaved && !addressComplete(values);
@@ -232,6 +246,8 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
 
                     {step === 'info' ? (
                         <>
+                            <CheckoutChecklist items={checklist} />
+
                             <section className="flex flex-col gap-3">
                                 <h2 className="text-xl font-medium">{t('checkout.contact')}</h2>
                                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#d9d9d9] px-4 py-3.5 text-sm">
@@ -276,6 +292,12 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
 
                                 {!usingSaved && (
                                     <>
+                                        <p className="text-[13px] text-subtle">
+                                            <span className="text-alert" aria-hidden="true">
+                                                *{' '}
+                                            </span>
+                                            {t('checkout.required_note')}
+                                        </p>
                                         <AddressFields
                                             values={values}
                                             onChange={(next) => {

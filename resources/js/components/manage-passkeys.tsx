@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { useTr } from '@/lib/shop';
 import { KeyRound } from 'lucide-react';
 import { destroy } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
 import Heading from '@/components/heading';
@@ -12,20 +13,23 @@ export type Props = {
 };
 
 const EmptyState = () => {
+    const tr = useTr();
+
     return (
         <div className="p-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
                 <KeyRound className="h-7 w-7 text-muted-foreground" />
             </div>
-            <p className="font-medium">No passkeys yet</p>
+            <p className="font-medium">{tr("No passkeys yet")}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-                Add a passkey to sign in without a password
+                {tr("Add a passkey to sign in without a password")}
             </p>
         </div>
     );
 };
 
 export default function ManagePasskeys(props: Props) {
+    const tr = useTr();
     const passkeys = props.passkeys ?? [];
 
     const handleDelete = (id: number, onError: () => void) => {
@@ -47,8 +51,8 @@ export default function ManagePasskeys(props: Props) {
         <div className="space-y-6">
             <Heading
                 variant="small"
-                title="Passkeys"
-                description="Manage your passkeys for passwordless sign-in"
+                title={tr("Passkeys")}
+                description={tr("Manage your passkeys for passwordless sign-in")}
             />
 
             <div className="overflow-hidden rounded-lg border border-border">

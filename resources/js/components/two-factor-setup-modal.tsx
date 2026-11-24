@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { useTr } from '@/lib/shop';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -24,6 +25,7 @@ import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { confirm } from '@/routes/two-factor';
 
 function GridScanIcon() {
+    const tr = useTr();
     return (
         <div className="mb-3 rounded-full border border-border bg-card p-0.5 shadow-sm">
             <div className="relative overflow-hidden rounded-full border border-border bg-muted p-2.5">
@@ -62,6 +64,7 @@ function TwoFactorSetupStep({
     onNextStep: () => void;
     errors: string[];
 }) {
+    const tr = useTr();
     const { resolvedAppearance } = useAppearance();
     const [copiedText, copy] = useClipboard();
     const IconComponent = copiedText === manualSetupKey ? Check : Copy;
@@ -145,6 +148,7 @@ function TwoFactorVerificationStep({
     onClose: () => void;
     onBack: () => void;
 }) {
+    const tr = useTr();
     const [code, setCode] = useState<string>('');
     const pinInputContainerRef = useRef<HTMLDivElement>(null);
 
@@ -210,7 +214,7 @@ function TwoFactorVerificationStep({
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                Back
+                                {tr("Back")}
                             </Button>
                             <Button
                                 type="submit"
@@ -219,7 +223,7 @@ function TwoFactorVerificationStep({
                                     processing || code.length < OTP_MAX_LENGTH
                                 }
                             >
-                                Confirm
+                                {tr("Confirm")}
                             </Button>
                         </div>
                     </div>
@@ -252,6 +256,7 @@ export default function TwoFactorSetupModal({
     fetchSetupData,
     errors,
 }: Props) {
+    const tr = useTr();
     const [showVerificationStep, setShowVerificationStep] =
         useState<boolean>(false);
 
@@ -262,29 +267,32 @@ export default function TwoFactorSetupModal({
     }>(() => {
         if (twoFactorEnabled) {
             return {
-                title: 'Two-factor authentication enabled',
-                description:
+                title: tr('Two-factor authentication enabled'),
+                description: tr(
                     'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-                buttonText: 'Close',
+                    ),
+                buttonText: tr('Close'),
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
-                description:
+                title: tr('Verify authentication code'),
+                description: tr(
                     'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                    ),
+                buttonText: tr('Continue'),
             };
         }
 
         return {
-            title: 'Enable two-factor authentication',
-            description:
+            title: tr('Enable two-factor authentication'),
+            description: tr(
                 'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            buttonText: 'Continue',
+                ),
+            buttonText: tr('Continue'),
         };
-    }, [twoFactorEnabled, showVerificationStep]);
+    }, [twoFactorEnabled, showVerificationStep, tr]);
 
     const resetModalState = useCallback(() => {
         if (twoFactorEnabled) {

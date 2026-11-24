@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { useTr } from '@/lib/shop';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
@@ -17,20 +18,21 @@ import {
 import { Label } from '@/components/ui/label';
 
 export default function DeleteUser() {
+    const tr = useTr();
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
         <div className="space-y-6">
             <Heading
                 variant="small"
-                title="Delete account"
-                description="Delete your account and all of its resources"
+                title={tr("Delete account")}
+                description={tr("Delete your account and all of its resources")}
             />
             <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                 <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
+                    <p className="font-medium">{tr("Warning")}</p>
                     <p className="text-sm">
-                        Please proceed with caution, this cannot be undone.
+                        {tr("Please proceed with caution, this cannot be undone.")}
                     </p>
                 </div>
 
@@ -40,12 +42,12 @@ export default function DeleteUser() {
                             variant="destructive"
                             data-test="delete-user-button"
                         >
-                            Delete account
+                            {tr("Delete account")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogTitle>
-                            Are you sure you want to delete your account?
+                            {tr("Are you sure you want to delete your account?")}
                         </DialogTitle>
                         <DialogDescription>
                             Once your account is deleted, all of its resources
@@ -70,14 +72,14 @@ export default function DeleteUser() {
                                             htmlFor="password"
                                             className="sr-only"
                                         >
-                                            Password
+                                            {tr("Password")}
                                         </Label>
 
                                         <PasswordInput
                                             id="password"
                                             name="password"
                                             ref={passwordInput}
-                                            placeholder="Password"
+                                            placeholder={tr("Password")}
                                             autoComplete="current-password"
                                         />
 
@@ -92,7 +94,7 @@ export default function DeleteUser() {
                                                     resetAndClearErrors()
                                                 }
                                             >
-                                                Cancel
+                                                {tr("Cancel")}
                                             </Button>
                                         </DialogClose>
 
@@ -105,7 +107,7 @@ export default function DeleteUser() {
                                                 type="submit"
                                                 data-test="confirm-delete-user-button"
                                             >
-                                                Delete account
+                                                {tr("Delete account")}
                                             </button>
                                         </Button>
                                     </DialogFooter>

@@ -192,8 +192,10 @@ class ProductForm
             ->schema([
                 Select::make('categories')
                     ->label(__('admin.products.fields.categories'))
-                    ->relationship('categories', 'slug', fn (Builder $query): Builder => $query->orderBy('sort_order'))
-                    ->getOptionLabelFromRecordUsing(fn (Category $c): string => $c->parent_id ? $c->parent?->name.' › '.$c->name : $c->name)
+                    // Parent loaded with the options ("Women › Bags"); loadMissing covers the
+                    // already-selected categories, which Filament loads separately.
+                    ->relationship('categories', 'slug', fn (Builder $query): Builder => $query->with('parent')->orderBy('sort_order'))
+                    ->getOptionLabelFromRecordUsing(fn (Category $c): string => $c->parent_id ? $c->loadMissing('parent')->parent?->name.' › '.$c->name : $c->name)
                     ->multiple()
                     ->preload()
                     ->searchable(),
