@@ -13,6 +13,10 @@ return [
         'storage', 'build', 'livewire', 'filament',
     ],
 
+    // Send every plain-HTTP request to HTTPS (and generate https:// links).
+    // On in production unless FORCE_HTTPS=false.
+    'force_https' => (bool) env('FORCE_HTTPS', env('APP_ENV') === 'production'),
+
     // Content languages. Every translatable field must be filled in all of them.
     'locales' => ['en', 'ar'],
 

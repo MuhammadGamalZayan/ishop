@@ -111,6 +111,7 @@ Every rule below is enforced in code and covered by tests:
 - Guest cart cookie: random UUID, encrypted, HttpOnly, SameSite=Lax, Secure on HTTPS.
 - Mass-assignment protection (stock is deliberately not fillable), CSRF, escaped output, upload type/size validation, **no SVG uploads** (they can carry scripts).
 - Deleted customer accounts are anonymised: the row stays for order history, personal data is removed, the email can register again.
+- Security headers on every response (nosniff, framing blocked, strict referrer, permissions policy); HTTPS forced in production with HSTS and secure session cookies.
 - `.env` and secrets never committed.
 
 ### Testing
@@ -144,14 +145,11 @@ npm run build
 
 ### Deployment (shared hosting)
 
-```bash
-npm run build                                       # locally
-composer install --no-dev --optimize-autoloader     # on the server
-php artisan migrate --force
-php artisan optimize
-```
+Step-by-step guide for FastComet / cPanel: **[deploy/DEPLOY.md](deploy/DEPLOY.md)**.
 
-Cron: `* * * * * php artisan schedule:run` (prunes old guest carts daily; will also expire unpaid online orders). The production `.env` is kept on the server and never synced.
+- `deploy/build-release.ps1` builds an upload-ready zip from the last commit (production packages, built frontend; never `.env`, logs or uploads).
+- `deploy/env.production.example` lists every production setting.
+- One cron entry (`schedule:run` every minute) runs the queue (photo conversions, mail) and the nightly clean-up; no long-running processes needed.
 
 ### What's next
 
@@ -272,6 +270,7 @@ Cron: `* * * * * php artisan schedule:run` (prunes old guest carts daily; will a
 - ملف تعريف الارتباط لسلة الزائر: معرّف UUID عشوائي، مشفَّر، و HttpOnly، و SameSite=Lax، و Secure عند استخدام HTTPS.
 - حماية من الإسناد الجماعي (Mass Assignment) (المخزون غير قابل للتعبئة عمدًا)، وحماية CSRF، وتأمين المخرجات، والتحقق من نوع الملفات المرفوعة وحجمها، و**منع رفع ملفات SVG** (لأنها قد تحتوي على شيفرات برمجية).
 - إخفاء هوية الحسابات المحذوفة: يبقى السجل حفاظًا على تاريخ الطلبات، وتُحذف البيانات الشخصية، ويمكن استخدام البريد الإلكتروني للتسجيل مجددًا.
+- ترويسات أمان في كل استجابة (منع تخمين نوع المحتوى، ومنع تضمين الموقع في إطار، وسياسة صارمة للمُحيل، وسياسة الأذونات)، وفرض HTTPS في الإنتاج مع HSTS وملفات جلسة آمنة.
 - لا يُرفع ملف `.env` ولا أي أسرار إلى مستودع git.
 
 ### الاختبارات
@@ -305,14 +304,11 @@ npm run build
 
 ### النشر (استضافة مشتركة)
 
-```bash
-npm run build                                       # على الجهاز المحلي
-composer install --no-dev --optimize-autoloader     # على الخادم
-php artisan migrate --force
-php artisan optimize
-```
+دليل خطوة بخطوة لـ FastComet و cPanel: **[deploy/DEPLOY.md](deploy/DEPLOY.md)**.
 
-المهمة المجدولة (Cron): `* * * * * php artisan schedule:run` (تحذف سلات الزوار القديمة يوميًا، وستُلغي الطلبات الإلكترونية غير المدفوعة). يبقى ملف `.env` الخاص بالخادم على الخادم ولا يُنقل أبدًا.
+- يُنشئ `deploy/build-release.ps1` ملفًا مضغوطًا جاهزًا للرفع من آخر commit (حزم الإنتاج والواجهة مبنيّة، ولا يحتوي أبدًا على `.env` أو السجلات أو الملفات المرفوعة).
+- يضم `deploy/env.production.example` كل إعدادات الإنتاج.
+- مهمة Cron واحدة (`schedule:run` كل دقيقة) تشغّل الأعمال الخلفية (تجهيز الصور والرسائل) والتنظيف الليلي، دون الحاجة إلى عمليات تعمل باستمرار.
 
 ### الخطوات التالية
 
