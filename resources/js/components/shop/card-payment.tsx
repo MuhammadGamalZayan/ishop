@@ -35,8 +35,8 @@ export function CardPayment({ config, amount, locale, payRef }: { config: Stripe
                     mode: 'payment',
                     amount,
                     currency: config.currency,
-                    // Must match the PaymentIntent (payment_method_types: card).
-                    allowedPaymentMethodTypes: ['card'],
+                    // Payment methods come from the Stripe Dashboard, like the PaymentIntent's
+                    // automatic_payment_methods (a client-side filter can't be combined with it).
                     locale,
                     appearance: {
                         theme: 'stripe',

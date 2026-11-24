@@ -63,7 +63,9 @@ class StripePayments
         $intent = $this->client()->paymentIntents->create([
             'amount' => $order->grand_total,             // already in piastres, Stripe's unit for EGP
             'currency' => mb_strtolower($order->currency),
-            'payment_method_types' => ['card'],
+            // Current Stripe API: methods come from the Dashboard settings; the
+            // checkout shows cards only, and nothing may leave the page.
+            'automatic_payment_methods' => ['enabled' => true, 'allow_redirects' => 'never'],
             'description' => "iShop order {$order->number}",
             'receipt_email' => $order->customer_email,
             'metadata' => ['order_id' => (string) $order->getKey(), 'order_number' => $order->number],

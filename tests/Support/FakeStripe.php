@@ -17,9 +17,19 @@ class FakeStripe implements ClientInterface
     /** @var list<string> idempotency keys seen on create */
     public array $idempotencyKeys = [];
 
+    /** @var array<string, mixed> parameters of the last PaymentIntent create */
+    public array $lastCreate = [];
+
+    /** Make the next creates fail like a Stripe API error. */
+    public bool $failCreate = false;
+
     public function request($method, $absUrl, $headers, $params, $hasFile, $apiMode = 'v1', $maxNetworkRetries = null)
     {
         $path = (string) parse_url($absUrl, PHP_URL_PATH);
+
+        if ($method === 'post' && $path === '/v1/payment_intents' && $this->failCreate) {
+            return [json_encode(['error' => ['type' => 'invalid_request_error', 'message' => 'Simulated Stripe error']]), 400, []];
+        }
 
         if ($method === 'post' && $path === '/v1/payment_intents') {
             foreach ($headers as $header) {
@@ -37,6 +47,12 @@ class FakeStripe implements ClientInterface
                 }
             }
 
+            // Like Stripe's current API version: methods come from the Dashboard.
+            if (isset($params['payment_method_types'])) {
+                return [json_encode(['error' => ['type' => 'invalid_request_error', 'message' => 'The `payment_method_types` parameter is no longer supported.']]), 400, []];
+            }
+
+            $this->lastCreate = $params;
             $id = 'pi_test_'.(count($this->intents) + 1);
             $this->intents[$id] = [
                 'id' => $id,

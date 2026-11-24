@@ -63,6 +63,8 @@ class StripeCheckoutTest extends CheckoutTestCase
         $this->assertSame(206000, $payment->amount);
         $this->assertSame('EGP', $payment->currency);
         $this->assertSame('egp', $this->stripe->intents[$payment->gateway_order_id]['currency']);
+        // Current Stripe API: automatic payment methods, nothing that leaves the page.
+        $this->assertSame(['enabled' => 'true', 'allow_redirects' => 'never'], $this->stripe->lastCreate['automatic_payment_methods']);
     }
 
     public function test_a_retry_after_a_declined_card_reuses_the_order_and_the_intent(): void
@@ -192,5 +194,19 @@ class StripeCheckoutTest extends CheckoutTestCase
                 ->where('stripe.test', true)
                 ->where('stripe.currency', 'egp')
                 ->missing('stripe.secret'));
+    }
+
+    public function test_a_stripe_error_can_be_retried_on_the_same_order(): void
+    {
+        $key = (string) Str::uuid();
+        $this->stripe->failCreate = true;
+        $first = $this->payByCard($key);
+        $first->assertStatus(502);
+
+        $this->stripe->failCreate = false;
+        $second = $this->payByCard($key);
+
+        $second->assertOk()->assertJsonStructure(['client_secret']);
+        $this->assertSame(1, Order::query()->count());
     }
 }
