@@ -81,6 +81,17 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Pas
         return $this->two_factor_confirmed_at !== null;
     }
 
+    /** @return HasMany<SocialAccount, $this> */
+    public function socialAccounts(): HasMany
+    {
+        return $this->hasMany(SocialAccount::class);
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasAnyRole(self::ADMIN_ROLES);
+    }
+
     /** @return HasMany<Address, $this> */
     public function addresses(): HasMany
     {

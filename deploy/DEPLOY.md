@@ -6,7 +6,7 @@
 
 ## English
 
-The store runs on a **subdomain** (e.g. `shop.example.com`) whose document root points at the project's `public` folder, so the application code is never reachable from the web. You upload one zip; the server needs SSH / Terminal only for a few `php artisan` commands. Payments at launch: **Cash on Delivery** (Paymob comes in a later release).
+The store runs on a **subdomain** (e.g. `shop.example.com`) whose document root points at the project's `public` folder, so the application code is never reachable from the web. You upload one zip; the server needs SSH / Terminal only for a few `php artisan` commands. Payments: **Cash on Delivery**, plus **cards through Stripe** once its keys are set (Paymob comes in a later release).
 
 Throughout, replace `cpaneluser` with your cPanel username and `shop.example.com` with your subdomain.
 
@@ -64,6 +64,15 @@ cd /home/cpaneluser/ishop && php artisan schedule:run >> /dev/null 2>&1
 
 Every minute this processes background work (product photo conversions, emails) and, nightly, deletes abandoned guest carts. Without it, newly uploaded photos never appear.
 
+### Optional: card payments (Stripe) and Google / GitHub sign-in
+
+Each feature switches itself on when its keys are in `.env` (then run `php artisan optimize`). Put keys in `.env` only — never in chat, email or the repository.
+
+- **Stripe:** create an account at stripe.com → *Developers → API keys* → copy the **test** keys into `STRIPE_KEY` (`pk_test_…`) and `STRIPE_SECRET` (`sk_test_…`). Then *Developers → Webhooks → Add endpoint* `https://shop.example.com/webhooks/stripe` with the events `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, and copy its signing secret into `STRIPE_WEBHOOK_SECRET`. With test keys the checkout shows Stripe's test cards; switch to live keys only when the business is verified on Stripe.
+- **Google:** console.cloud.google.com → *APIs & Services → Credentials → Create OAuth client ID* (Web application). Authorised redirect URI: `https://shop.example.com/auth/google/callback`. Copy the ID and secret into `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+- **GitHub:** github.com → *Settings → Developer settings → OAuth Apps → New OAuth App*. Callback URL: `https://shop.example.com/auth/github/callback`. Copy into `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`.
+
+For local testing use `http://ishop.test/...` as the callback URLs (a separate OAuth app is simplest).
 ### 5. Check the launch
 
 - Open `https://shop.example.com`. `http://` must redirect to `https://`.
@@ -109,7 +118,7 @@ FastComet keeps daily backups (cPanel → *JetBackup*). Before each update also 
 
 ## العربية
 
-يعمل المتجر على **نطاق فرعي** (مثل `shop.example.com`) يشير مجلده الجذري إلى مجلد `public` في المشروع، فلا يمكن الوصول إلى شيفرة التطبيق من الإنترنت. ترفع ملفًا مضغوطًا واحدًا، ولا يحتاج الخادم إلى Terminal إلا لبضعة أوامر `php artisan`. وسيلة الدفع عند الإطلاق: **الدفع عند الاستلام**، ويُضاف Paymob في إصدار لاحق.
+يعمل المتجر على **نطاق فرعي** (مثل `shop.example.com`) يشير مجلده الجذري إلى مجلد `public` في المشروع، فلا يمكن الوصول إلى شيفرة التطبيق من الإنترنت. ترفع ملفًا مضغوطًا واحدًا، ولا يحتاج الخادم إلى Terminal إلا لبضعة أوامر `php artisan`. وسائل الدفع: **الدفع عند الاستلام**، و**البطاقات عبر Stripe** بعد وضع مفاتيحها، ويُضاف Paymob في إصدار لاحق.
 
 استبدل في كل الخطوات `cpaneluser` باسم مستخدم cPanel، و`shop.example.com` بنطاقك الفرعي.
 
@@ -167,6 +176,15 @@ cd /home/cpaneluser/ishop && php artisan schedule:run >> /dev/null 2>&1
 
 تعالج هذه المهمة كل دقيقة الأعمال الخلفية (تجهيز صور المنتجات والرسائل)، وتحذف ليلًا سلال الزوار المهجورة. ومن دونها لن تظهر الصور الجديدة أبدًا.
 
+### اختياري: الدفع بالبطاقة (Stripe) وتسجيل الدخول بحساب Google أو GitHub
+
+تعمل كل ميزة تلقائيًا عند وضع مفاتيحها في `.env` (ثم نفّذ `php artisan optimize`). ضع المفاتيح في `.env` فقط، ولا ترسلها أبدًا في محادثة أو بريد ولا تضعها في المستودع.
+
+- **Stripe:** أنشئ حسابًا في stripe.com، ثم *Developers ثم API keys*، وانسخ مفاتيح **الاختبار** إلى `STRIPE_KEY` (`pk_test_…`) و`STRIPE_SECRET` (`sk_test_…`). ثم من *Developers ثم Webhooks ثم Add endpoint* أضف `https://shop.example.com/webhooks/stripe` مع الأحداث `payment_intent.succeeded` و`payment_intent.payment_failed` و`payment_intent.canceled`، وانسخ مفتاح التوقيع إلى `STRIPE_WEBHOOK_SECRET`. مع مفاتيح الاختبار تعرض صفحة الدفع بطاقات الاختبار الخاصة بـ Stripe، ولا تنتقل إلى المفاتيح الحقيقية إلا بعد توثيق النشاط التجاري في Stripe.
+- **Google:** من console.cloud.google.com اختر *APIs & Services ثم Credentials ثم Create OAuth client ID* (Web application)، واجعل عنوان إعادة التوجيه `https://shop.example.com/auth/google/callback`، وانسخ المعرّف والسر إلى `GOOGLE_CLIENT_ID` و`GOOGLE_CLIENT_SECRET`.
+- **GitHub:** من github.com اختر *Settings ثم Developer settings ثم OAuth Apps ثم New OAuth App*، واجعل عنوان الرجوع `https://shop.example.com/auth/github/callback`، وانسخ القيم إلى `GITHUB_CLIENT_ID` و`GITHUB_CLIENT_SECRET`.
+
+للتجربة محليًا استخدم `http://ishop.test/...` في عناوين الرجوع (الأسهل إنشاء تطبيق OAuth منفصل لذلك).
 ### 5. التحقق بعد الإطلاق
 
 - افتح `https://shop.example.com`، ويجب أن يحوّل `http://` إلى `https://`.

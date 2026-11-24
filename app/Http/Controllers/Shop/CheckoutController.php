@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Shop;
 
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Exceptions\CheckoutException;
 use App\Exceptions\CouponException;
 use App\Http\Controllers\Controller;
@@ -11,6 +12,7 @@ use App\Models\Address;
 use App\Models\Cart;
 use App\Models\Coupon;
 use App\Models\Governorate;
+use App\Models\Order;
 use App\Models\ShippingArea;
 use App\Models\User;
 use App\Services\Cart\CartIssue;
@@ -20,13 +22,17 @@ use App\Services\Checkout\CheckoutData;
 use App\Services\Checkout\CouponRules;
 use App\Services\Checkout\PlaceOrder;
 use App\Services\Checkout\Pricing;
+use App\Services\Payments\StripePayments;
 use App\Support\Storefront\CartDrawer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Stripe\Exception\ApiErrorException;
 
 /**
  * Checkout page (approved mockup: Information → Payment).
@@ -82,14 +88,19 @@ class CheckoutController extends Controller
                     'areas' => $g->shippingAreas->map(fn (ShippingArea $a): array => ['id' => $a->getKey(), 'name' => $a->name, 'price' => $a->shipping_price])->values(),
                 ])->values(),
             'areaId' => $area?->getKey(),
+            // Card payments: publishable key only (safe to show); null = cash on delivery only.
+            'stripe' => StripePayments::enabled()
+                ? ['key' => config('services.stripe.key'), 'test' => StripePayments::testMode(), 'currency' => mb_strtolower((string) config('ishop.currency'))]
+                : null,
         ]);
     }
 
-    public function store(CheckoutRequest $request, PlaceOrder $placeOrder): RedirectResponse
+    public function store(CheckoutRequest $request, PlaceOrder $placeOrder, StripePayments $stripe): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
         $data = $request->validated();
+        $card = $data['payment_method'] === PaymentMethod::Stripe->value;
 
         try {
             $order = $placeOrder->handle($user, new CheckoutData(
@@ -102,13 +113,63 @@ class CheckoutController extends Controller
                 expectedTotal: (int) $data['expected_total'],
             ));
         } catch (CheckoutException|CouponException $e) {
+            if ($card) {
+                // The page shows the reason and reloads its lines and totals.
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
             // Page reloads with fresh lines, warnings and totals; the reason shows as a toast.
             Inertia::flash('toast', ['type' => 'error', 'message' => $e->getMessage()]);
 
             return back();
         }
 
+        if ($card) {
+            // The order holds the stock; the browser now confirms the card with Stripe.
+            // Same idempotency key on a retry = same order and same PaymentIntent.
+            if (! $order->isAwaitingOnlinePayment()) {
+                return response()->json(['message' => __('shop.checkout.card_not_payable'), 'redirect' => route('shop.account.order', ['number' => $order->number])], 409);
+            }
+
+            try {
+                $secret = $stripe->clientSecretFor($order);
+            } catch (ApiErrorException $e) {
+                Log::error('Stripe intent failed', ['order' => $order->number, 'error' => $e->getMessage()]);
+
+                return response()->json(['message' => __('shop.checkout.card_unavailable')], 502);
+            }
+
+            return response()->json([
+                'client_secret' => $secret,
+                'return_url' => route('checkout.stripe.return', ['order' => $order->number]),
+            ]);
+        }
+
         Inertia::flash('toast', ['type' => 'success', 'message' => __('shop.checkout.placed', ['number' => $order->number])]);
+
+        return redirect()->route('shop.account.order', ['number' => $order->number]);
+    }
+
+    /**
+     * After the card step (in page, or back from a 3D Secure page). The
+     * status comes from Stripe's API, never from the query string.
+     */
+    public function stripeReturn(Request $request, StripePayments $stripe): RedirectResponse
+    {
+        /** @var Order $order */
+        $order = $request->user()->orders()->where('number', (string) $request->query('order'))->firstOrFail();
+
+        try {
+            $order = $stripe->refresh($order);
+        } catch (ApiErrorException $e) {
+            Log::warning('Stripe status check failed', ['order' => $order->number, 'error' => $e->getMessage()]);
+        }
+
+        $paid = $order->payment_status === PaymentStatus::Paid;
+
+        Inertia::flash('toast', $paid
+            ? ['type' => 'success', 'message' => __('shop.checkout.placed', ['number' => $order->number])]
+            : ['type' => 'info', 'message' => __('shop.checkout.card_pending', ['number' => $order->number])]);
 
         return redirect()->route('shop.account.order', ['number' => $order->number]);
     }

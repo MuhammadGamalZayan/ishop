@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Models\SocialAccount;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +12,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('settings/social/{provider}', [SocialAuthController::class, 'destroy'])->name('social.destroy');
+});
+
+// Google / GitHub sign-in (and linking, when already signed in).
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->whereIn('provider', SocialAccount::PROVIDERS)->name('social.redirect');
+    Route::get('auth/{provider}/callback', [SocialAuthController::class, 'callback'])->whereIn('provider', SocialAccount::PROVIDERS)->name('social.callback');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

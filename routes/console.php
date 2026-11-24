@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Schedule;
 // Shared hosting: cron runs `schedule:run` every minute.
 Schedule::command('model:prune', ['--model' => [Cart::class, Wishlist::class]])->daily()->at('03:30');
 
+// Card orders not paid in time: cancel and restock.
+Schedule::command('orders:expire-unpaid')->everyMinute()->withoutOverlapping(5);
+
 // No long-running worker on shared hosting: each minute, work through the
 // queue (product photo conversions, mail) and stop when it is empty. Capped
 // under a minute so runs never pile up; withoutOverlapping as a second guard.

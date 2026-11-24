@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Shop;
 
+use App\Services\Payments\StripePayments;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CheckoutRequest extends FormRequest
@@ -27,7 +28,7 @@ class CheckoutRequest extends FormRequest
 
         return [
             'idempotency_key' => ['required', 'uuid'],
-            'payment_method' => ['required', 'in:cod'],
+            'payment_method' => ['required', StripePayments::enabled() ? 'in:cod,stripe' : 'in:cod'],
             'address_id' => ['nullable', 'integer'],
             'save_address' => ['boolean'],
             'customer_note' => ['nullable', 'string', 'max:1000'],

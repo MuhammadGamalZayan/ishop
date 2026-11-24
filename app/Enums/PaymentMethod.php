@@ -7,6 +7,7 @@ enum PaymentMethod: string
 {
     case CashOnDelivery = 'cod';
     case Paymob = 'paymob';
+    case Stripe = 'stripe';
 
     public function isOnline(): bool
     {

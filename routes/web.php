@@ -6,6 +6,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\WishlistController;
+use App\Http\Controllers\Webhooks\StripeWebhookController;
 use App\Http\Middleware\SetLocale;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -48,6 +49,7 @@ Route::middleware(['auth', 'throttle:checkout'])->group(function () {
     Route::post('checkout', [CheckoutController::class, 'store'])->name('checkout.store');
     Route::post('checkout/coupon', [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon');
     Route::delete('checkout/coupon', [CheckoutController::class, 'removeCoupon'])->name('checkout.coupon.remove');
+    Route::get('checkout/stripe/return', [CheckoutController::class, 'stripeReturn'])->name('checkout.stripe.return');
 });
 
 Route::middleware('auth')->group(function () {
@@ -88,6 +90,9 @@ Route::middleware('throttle:cart')->group(function () {
     Route::delete('cart/items/{item}', [CartController::class, 'destroy'])->whereNumber('item')->name('cart.items.destroy');
     Route::post('wishlist/{product}', [WishlistController::class, 'toggle'])->whereNumber('product')->name('wishlist.toggle');
 });
+
+// Stripe payment events (signed; CSRF-exempt in bootstrap/app.php).
+Route::post('webhooks/stripe', StripeWebhookController::class)->middleware('throttle:120,1')->name('webhooks.stripe');
 
 // These addresses only receive form submissions. Opened in the browser (typed,
 // bookmarked, refreshed after a form), send people to a real page instead of

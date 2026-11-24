@@ -35,4 +35,28 @@ return [
         ],
     ],
 
+    // Social sign-in (Socialite). A provider's button shows only when both
+    // keys are set. Callback URL to register with the provider:
+    //   {APP_URL}/auth/{google|github}/callback
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => '/auth/google/callback',
+    ],
+
+    'github' => [
+        'client_id' => env('GITHUB_CLIENT_ID'),
+        'client_secret' => env('GITHUB_CLIENT_SECRET'),
+        'redirect' => '/auth/github/callback',
+    ],
+
+    // Card payments. Test keys start with pk_test_ / sk_test_ (the checkout
+    // then shows Stripe's test cards). The webhook secret (whsec_...) comes
+    // from the Stripe dashboard webhook endpoint {APP_URL}/webhooks/stripe.
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
 ];

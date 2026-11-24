@@ -21,6 +21,7 @@ use App\Models\ProductVariant;
 use App\Models\ShippingArea;
 use App\Models\User;
 use App\Services\Inventory;
+use App\Services\Payments\StripePayments;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -50,8 +51,11 @@ class PlaceOrder
 
     public function handle(User $user, CheckoutData $data): Order
     {
-        if ($data->paymentMethod !== PaymentMethod::CashOnDelivery) {
-            // Paymob arrives with its own step (payment attempt + webhook).
+        $available = $data->paymentMethod === PaymentMethod::CashOnDelivery
+            || ($data->paymentMethod === PaymentMethod::Stripe && StripePayments::enabled());
+
+        if (! $available) {
+            // Paymob arrives later with its own step (payment attempt + webhook).
             throw CheckoutException::paymentMethod();
         }
 
@@ -156,6 +160,8 @@ class PlaceOrder
             'coupon_code' => $quote->coupon?->code,
             'customer_note' => filled($data->customerNote) ? mb_substr(trim($data->customerNote), 0, 1000) : null,
             'placed_at' => now(),
+            // Card orders hold their stock only this long; then OrdersExpireUnpaid cancels them.
+            'payment_expires_at' => $data->paymentMethod->isOnline() ? now()->addMinutes((int) config('ishop.payment_timeout_minutes')) : null,
         ])->save();
 
         foreach ($quote->lines as $line) {

@@ -364,6 +364,7 @@ return [
         'methods' => [
             'cod' => 'الدفع عند الاستلام',
             'paymob' => 'بطاقة / محفظة (Paymob)',
+            'stripe' => 'بطاقة (Stripe)',
         ],
         'payment_statuses' => [
             'unpaid' => 'غير مدفوع',

@@ -21,12 +21,15 @@ The store sells in **Egyptian pounds**, in **Arabic and English** (the Arabic si
 | Storefront (Inertia + React, `/en` and `/ar`) | ✅ Home, categories, product, cart, wishlist, checkout, My account, sign-in |
 | Cart, wishlist, checkout, orders | ✅ With row locks, idempotency and concurrency tests |
 | Cash on delivery | ✅ |
-| **Paymob (cards & mobile wallets)** | ⏳ Next |
+| Card payments with **Stripe** (test mode, Payment Element, signed webhook, unpaid-order expiry) | ✅ |
+| Sign in with **Google / GitHub** (Socialite) | ✅ |
+| **Paymob (Egyptian cards & mobile wallets)** | ⏳ Next |
 | Announcement bar, reviews, info pages | ⏳ Planned (designs approved) |
-| SEO (meta, JSON-LD, sitemap), custom error pages, security headers | ⏳ Planned |
-| Production deployment | ⏳ Planned |
+| Security headers, HTTPS in production | ✅ |
+| Production deployment kit (release zip, FastComet / cPanel guide) | ✅ |
+| SEO (meta, JSON-LD, sitemap), custom error pages | ⏳ Planned |
 
-Automated tests: **157 passing**, plus **4 concurrency tests** that race real PHP processes against MySQL/MariaDB.
+Automated tests: **180 passing**, plus **4 concurrency tests** that race real PHP processes against MySQL/MariaDB.
 
 ### Technology stack
 
@@ -106,6 +109,8 @@ Every rule below is enforced in code and covered by tests:
 ### Security
 
 - Fortify authentication with **two-factor authentication** and **passkeys**; 2FA required for staff to enter the admin panel.
+- Google / GitHub sign-in links to an existing account only when the provider confirms the email is verified; staff can't use it; users with 2FA still get the challenge.
+- Card details never reach the server (Stripe's own fields); an order is marked paid only from Stripe's API or a signature-verified webhook, with amount and currency checked.
 - Role/permission checks (spatie/laravel-permission) and policies; customers only ever reach their own orders and addresses (others get 404).
 - Rate limits on cart, checkout and coupon attempts.
 - Guest cart cookie: random UUID, encrypted, HttpOnly, SameSite=Lax, Secure on HTTPS.
@@ -180,12 +185,15 @@ Step-by-step guide for FastComet / cPanel: **[deploy/DEPLOY.md](deploy/DEPLOY.md
 | واجهة المتجر (Inertia + React، `/en` و `/ar`) | ✅ الرئيسية، والتصنيفات، والمنتج، والسلة، والمفضلة، وإتمام الطلب، وحسابي، وتسجيل الدخول |
 | السلة والمفضلة وإتمام الطلب والطلبات | ✅ مع أقفال الصفوف، ومنع التكرار، واختبارات التزامن |
 | الدفع عند الاستلام | ✅ |
-| **Paymob (البطاقات والمحافظ الإلكترونية)** | ⏳ الخطوة التالية |
+| الدفع بالبطاقات عبر **Stripe** (وضع الاختبار، و Payment Element، وإشعارات موقّعة، وإلغاء الطلبات غير المدفوعة) | ✅ |
+| تسجيل الدخول بحساب **Google أو GitHub** (Socialite) | ✅ |
+| **Paymob (البطاقات والمحافظ الإلكترونية المصرية)** | ⏳ الخطوة التالية |
 | شريط الإعلانات، والتقييمات، وصفحات المعلومات | ⏳ مخطط له (التصميم معتمد) |
-| تحسين محركات البحث (الوسوم الوصفية، JSON-LD، خريطة الموقع)، وصفحات أخطاء مخصصة، وترويسات الأمان | ⏳ مخطط له |
-| النشر على الخادم | ⏳ مخطط له |
+| ترويسات الأمان، وفرض HTTPS في الإنتاج | ✅ |
+| أدوات النشر (ملف الإصدار، ودليل FastComet و cPanel) | ✅ |
+| تحسين محركات البحث (الوسوم الوصفية، JSON-LD، خريطة الموقع)، وصفحات أخطاء مخصصة | ⏳ مخطط له |
 
-الاختبارات الآلية: **157 اختبارًا ناجحًا**، إضافة إلى **4 اختبارات تزامن** تُشغِّل عمليات PHP حقيقية في اللحظة نفسها على MySQL/MariaDB.
+الاختبارات الآلية: **180 اختبارًا ناجحًا**، إضافة إلى **4 اختبارات تزامن** تُشغِّل عمليات PHP حقيقية في اللحظة نفسها على MySQL/MariaDB.
 
 ### التقنيات المستخدمة
 
@@ -265,6 +273,8 @@ Step-by-step guide for FastComet / cPanel: **[deploy/DEPLOY.md](deploy/DEPLOY.md
 ### الأمان
 
 - مصادقة عبر Fortify مع **التحقق بخطوتين** و**مفاتيح المرور**، والتحقق بخطوتين إلزامي لفريق العمل لدخول لوحة التحكم.
+- لا يُربط تسجيل الدخول بحساب Google أو GitHub بحساب موجود إلا إذا أكّد مقدّم الخدمة أن البريد موثّق، ولا يستطيع فريق العمل استخدامه، ويُطلب التحقق بخطوتين ممن فعّله.
+- لا تصل بيانات البطاقة إلى الخادم أبدًا (خانات Stripe نفسها)، ولا يُعدّ الطلب مدفوعًا إلا بناءً على واجهة Stripe أو إشعار موقّع، مع التحقق من المبلغ والعملة.
 - أدوار وصلاحيات (spatie/laravel-permission) وسياسات صلاحيات؛ ولا يصل العميل إلا إلى طلباته وعناوينه (ويتلقى غيره استجابة 404).
 - حدود لمعدل الطلبات على السلة وإتمام الطلب ومحاولات الكوبونات.
 - ملف تعريف الارتباط لسلة الزائر: معرّف UUID عشوائي، مشفَّر، و HttpOnly، و SameSite=Lax، و Secure عند استخدام HTTPS.

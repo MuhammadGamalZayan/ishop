@@ -8,6 +8,7 @@ export type ShopProps = {
     nav: NavCategory[];
     cart: { count: number };
     wishlist: number[];
+    socialProviders: ('google' | 'github')[];
     cartDrawer?: CartDrawerData;
     auth: { user: { name: string; email: string } | null };
     name: string;

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SocialAccount;
 use App\Services\Cart\CartService;
 use App\Services\Cart\WishlistService;
 use App\Support\Storefront\CartDrawer;
@@ -54,6 +55,8 @@ class HandleInertiaRequests extends Middleware
             // Lazy: one small query, only when the page renders the header badge.
             'cart' => fn (): array => ['count' => app(CartService::class)->count()],
             'wishlist' => fn (): array => app(WishlistService::class)->productIds(),
+            // Google / GitHub buttons: only providers whose keys are set.
+            'socialProviders' => fn (): array => SocialAccount::enabledProviders(),
             // Only loaded when the drawer opens (router.reload({ only: ['cartDrawer'] })).
             'cartDrawer' => Inertia::optional(fn (): array => app(CartDrawer::class)->data()),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

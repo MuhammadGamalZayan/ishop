@@ -28,10 +28,13 @@ class SecurityHeaders
         $headers->set('X-Content-Type-Options', 'nosniff');
         $headers->set('X-Frame-Options', 'SAMEORIGIN');
         $headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
-        $headers->set('Cross-Origin-Opener-Policy', 'same-origin');
+        // Stripe's card fields are an iframe from js.stripe.com and may use the Payment Request API.
+        $headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")');
 
         if ($request->isSecure()) {
+            // Only honoured over HTTPS. Allow-popups: payment / sign-in windows must still work.
+            $headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
             // One year; browsers then refuse plain HTTP for this host.
             $headers->set('Strict-Transport-Security', 'max-age=31536000');
         }

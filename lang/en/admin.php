@@ -364,6 +364,7 @@ return [
         'methods' => [
             'cod' => 'Cash on delivery',
             'paymob' => 'Card / wallet (Paymob)',
+            'stripe' => 'Card (Stripe)',
         ],
         'payment_statuses' => [
             'unpaid' => 'Unpaid',

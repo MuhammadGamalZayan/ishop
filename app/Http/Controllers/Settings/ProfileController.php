@@ -6,6 +6,7 @@ use App\Actions\Account\CloseAccount;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\SocialAccount;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,12 @@ class ProfileController extends Controller
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            // Google / GitHub rows: only providers whose keys are set.
+            'socialAccounts' => collect(SocialAccount::enabledProviders())->map(function (string $provider) use ($request): array {
+                $linked = $request->user()->socialAccounts->firstWhere('provider', $provider);
+
+                return ['provider' => $provider, 'email' => $linked?->email, 'connected' => $linked !== null];
+            })->values(),
         ]);
     }
 

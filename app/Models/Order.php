@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -21,6 +22,10 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $shipping_total piastres
  * @property int $tax_total piastres, already inside grand_total
  * @property int $grand_total piastres
+ * @property OrderStatus $status
+ * @property PaymentMethod $payment_method
+ * @property PaymentStatus $payment_status
+ * @property CarbonInterface|null $payment_expires_at
  */
 class Order extends Model
 {

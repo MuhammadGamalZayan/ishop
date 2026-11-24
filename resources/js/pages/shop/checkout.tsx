@@ -1,8 +1,11 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { AlertCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { AddressFields, addressComplete, addressPayload, emptyAddress } from '@/components/shop/address-fields';
 import type { AddressValues, Governorate } from '@/components/shop/address-fields';
+import { CardPayment } from '@/components/shop/card-payment';
+import type { CardPay, StripeConfig } from '@/components/shop/card-payment';
 import { useCart } from '@/components/shop/cart-context';
 import { ProductImage } from '@/components/shop/product-image';
 import { money, useShop, useT } from '@/lib/shop';
@@ -28,14 +31,22 @@ type Props = {
     addresses: SavedAddress[];
     governorates: Governorate[];
     areaId: number | null;
+    stripe: StripeConfig | null;
 };
+
+/** Laravel's XSRF cookie, for the JSON request of the card payment. */
+function xsrfToken(): string {
+    const match = document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/);
+
+    return match ? decodeURIComponent(match[1]) : '';
+}
 
 /**
  * Checkout (approved mockup): Cart → Information → Payment.
  * If any cart line changed since it was added, the warning lists it and
  * Continue stays disabled; the server refuses the order anyway.
  */
-export default function Checkout({ idempotencyKey, email, lines, quote, addresses, governorates, areaId }: Props) {
+export default function Checkout({ idempotencyKey, email, lines, quote, addresses, governorates, areaId, stripe }: Props) {
     const t = useT();
     const { locale } = useShop();
     const cart = useCart();
@@ -48,6 +59,10 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
     const [note, setNote] = useState('');
     const [code, setCode] = useState('');
     const [placing, setPlacing] = useState(false);
+    // Card first when Stripe is set up (approved mockup), else cash on delivery only.
+    const [method, setMethod] = useState<'card' | 'cod'>(stripe ? 'card' : 'cod');
+    const [cardError, setCardError] = useState<string | null>(null);
+    const cardPay = useRef<CardPay | null>(null);
 
     // The cart may have been edited in the drawer: refresh lines and totals when it closes.
     const [wasOpen, setWasOpen] = useState(false);
@@ -75,24 +90,77 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
     const cannotContinue = blocked || !area || missingFields || !quote.has_area;
     const why = blocked ? t('checkout.why_problems') : !area ? t('checkout.why_area') : missingFields ? t('checkout.why_fields') : '';
 
+    const orderData = (paymentMethod: 'cod' | 'stripe') => ({
+        idempotency_key: idempotencyKey,
+        payment_method: paymentMethod,
+        address_id: addressId,
+        address: usingSaved ? null : addressPayload(values),
+        save_address: save,
+        customer_note: note || null,
+        expected_total: quote.grand_total,
+    });
+
     const place = () => {
+        if (method === 'card') {
+            payByCard();
+
+            return;
+        }
+
         setPlacing(true);
-        router.post(
-            '/checkout',
-            {
-                idempotency_key: idempotencyKey,
-                payment_method: 'cod',
-                address_id: addressId,
-                address: usingSaved ? null : addressPayload(values),
-                save_address: save,
-                customer_note: note || null,
-                expected_total: quote.grand_total,
-            },
-            {
-                onError: () => setStep('info'),
-                onFinish: () => setPlacing(false),
-            },
-        );
+        router.post('/checkout', orderData('cod'), {
+            onError: () => setStep('info'),
+            onFinish: () => setPlacing(false),
+        });
+    };
+
+    // Card: the same idempotency key on every try, so a retry after a declined
+    // card reuses the same order (stock held) and the same Stripe payment.
+    const payByCard = async () => {
+        const pay = cardPay.current;
+        if (!pay) return;
+
+        setPlacing(true);
+        setCardError(null);
+
+        try {
+            const result = await pay(async () => {
+                const response = await fetch('/checkout', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': xsrfToken() },
+                    body: JSON.stringify(orderData('stripe')),
+                });
+                const body = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw Object.assign(new Error(body.message ?? t('checkout.card_unavailable')), { status: response.status, redirect: body.redirect as string | undefined, fields: !!body.errors });
+                }
+
+                return body;
+            });
+
+            if (result.returnUrl) {
+                router.visit(result.returnUrl);
+
+                return;
+            }
+
+            setCardError(result.error ?? t('checkout.card_failed'));
+        } catch (e) {
+            const err = e as Error & { status?: number; redirect?: string; fields?: boolean };
+            toast.error(err.message);
+
+            if (err.redirect) {
+                router.visit(err.redirect);
+            } else if (err.status === 422) {
+                // Stock, price or address changed: fresh lines and totals, back to the details.
+                router.reload({ only: ['lines', 'quote'] });
+                if (err.fields) setStep('info');
+            }
+        }
+
+        setPlacing(false);
     };
 
     const shipToText = usingSaved
@@ -277,18 +345,59 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
                                 <p className="-mt-1 text-[13px] text-subtle">{t('checkout.payment_safe')}</p>
                                 <fieldset className="overflow-hidden rounded-lg border border-[#d9d9d9]">
                                     <legend className="sr-only">{t('checkout.payment')}</legend>
-                                    <label className="flex cursor-pointer items-start gap-3 border-b border-[#e2e2e2] bg-[#f7f7f7] p-4">
-                                        <input type="radio" name="method" checked readOnly className="mt-0.5 size-4.5 flex-none accent-ink" />
+                                    {stripe ? (
+                                        <>
+                                            <label className={`flex cursor-pointer items-start gap-3 border-b border-[#e2e2e2] p-4 ${method === 'card' ? 'bg-[#f7f7f7]' : ''}`}>
+                                                <input
+                                                    type="radio"
+                                                    name="method"
+                                                    value="card"
+                                                    checked={method === 'card'}
+                                                    onChange={() => setMethod('card')}
+                                                    className="mt-0.5 size-4.5 flex-none accent-ink"
+                                                />
+                                                <span className="flex flex-1 flex-col gap-1">
+                                                    <span className="text-[15px] font-medium">{t('checkout.card')}</span>
+                                                    <span className="text-[13px] leading-normal text-subtle">{t('checkout.card_text')}</span>
+                                                </span>
+                                                <span className="flex gap-1" aria-hidden="true">
+                                                    <span className="rounded-sm border border-[#d0d0d0] bg-white px-1.5 py-0.5 text-[10px] font-bold">VISA</span>
+                                                    <span className="rounded-sm border border-[#d0d0d0] bg-white px-1.5 py-0.5 text-[10px] font-bold">MC</span>
+                                                </span>
+                                            </label>
+                                            {method === 'card' && (
+                                                <div className="border-b border-[#e2e2e2] bg-[#f7f7f7] p-4">
+                                                    <CardPayment config={stripe} amount={quote.grand_total} locale={locale} payRef={cardPay} />
+                                                    {cardError && (
+                                                        <p role="alert" className="mt-3 flex items-start gap-1.5 text-[13px] text-alert">
+                                                            <AlertCircle className="mt-0.5 size-3.5 flex-none" aria-hidden="true" />
+                                                            {cardError}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <label className="flex items-start gap-3 border-b border-[#e2e2e2] p-4 opacity-60">
+                                            <input type="radio" name="method" disabled className="mt-0.5 size-4.5 flex-none" />
+                                            <span className="flex flex-col gap-1">
+                                                <span className="text-[15px] font-medium">{t('checkout.card')}</span>
+                                                <span className="text-[13px] text-subtle">{t('checkout.card_soon')}</span>
+                                            </span>
+                                        </label>
+                                    )}
+                                    <label className={`flex cursor-pointer items-start gap-3 p-4 ${method === 'cod' ? 'bg-[#f7f7f7]' : ''}`}>
+                                        <input
+                                            type="radio"
+                                            name="method"
+                                            value="cod"
+                                            checked={method === 'cod'}
+                                            onChange={() => setMethod('cod')}
+                                            className="mt-0.5 size-4.5 flex-none accent-ink"
+                                        />
                                         <span className="flex flex-col gap-1">
                                             <span className="text-[15px] font-medium">{t('checkout.cod')}</span>
                                             <span className="text-[13px] leading-normal text-subtle">{t('checkout.cod_text')}</span>
-                                        </span>
-                                    </label>
-                                    <label className="flex items-start gap-3 p-4 opacity-60">
-                                        <input type="radio" name="method" disabled className="mt-0.5 size-4.5 flex-none" />
-                                        <span className="flex flex-col gap-1">
-                                            <span className="text-[15px] font-medium">{t('checkout.card')}</span>
-                                            <span className="text-[13px] text-subtle">{t('checkout.card_soon')}</span>
                                         </span>
                                     </label>
                                 </fieldset>
@@ -300,10 +409,10 @@ export default function Checkout({ idempotencyKey, email, lines, quote, addresse
                                     {t('checkout.return_to_info')}
                                 </button>
                                 <button type="button" disabled={placing || blocked} onClick={place} className="h-14 rounded-lg bg-ink px-7 text-base font-medium text-white disabled:opacity-60">
-                                    {t('checkout.place_order')} · {money(quote.grand_total, locale)}
+                                    {t(method === 'card' ? 'checkout.pay_now' : 'checkout.place_order')} · {money(quote.grand_total, locale)}
                                 </button>
                             </div>
-                            <p className="-mt-3 text-end text-[13px] text-subtle">{t('checkout.cod_note')}</p>
+                            <p className="-mt-3 text-end text-[13px] text-subtle">{t(method === 'card' ? 'checkout.card_note' : 'checkout.cod_note')}</p>
                         </>
                     )}
                 </div>
