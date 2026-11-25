@@ -105,8 +105,8 @@ class DemoHomeSeeder extends Seeder
             ],
             'compare' => [
                 'title' => $t('Choose your colour', 'اختر لونك'),
-                'left' => ['image' => $this->compareImage('compare-tan.jpg', darken: false), 'label' => $t('Saddle crossbody · Tan', 'شنطة سادل · جملي'), 'link' => 'products/saddle-crossbody'],
-                'right' => ['image' => $this->compareImage('compare-black.jpg', darken: true), 'label' => $t('Saddle crossbody · Black', 'شنطة سادل · أسود'), 'link' => 'products/saddle-crossbody'],
+                'left' => ['image' => $this->productPhoto('saddle-crossbody'), 'label' => $t('Saddle Crossbody', 'شنطة كروس سادل'), 'link' => 'products/saddle-crossbody'],
+                'right' => ['image' => $this->productPhoto('structured-top-handle'), 'label' => $t('Structured Top Handle', 'شنطة يد كلاسيك'), 'link' => 'products/structured-top-handle'],
             ],
         ];
     }
@@ -124,29 +124,15 @@ class DemoHomeSeeder extends Seeder
         return $path;
     }
 
-    /**
-     * Demo only: the two "colours" of the compare slider are one bag photo,
-     * as is and darkened. The admin uploads two real photos instead.
-     */
-    private function compareImage(string $name, bool $darken): string
+    /** A demo product photo (demo-images/{slug}-1.jpg) copied for the compare slider. */
+    private function productPhoto(string $slug): string
     {
-        $path = "home/{$name}";
-        $source = database_path('seeders/demo-images/saddle-crossbody-1.jpg');
+        $path = "home/compare-{$slug}.jpg";
+        $source = database_path("seeders/demo-images/{$slug}-1.jpg");
 
-        if (app()->runningUnitTests() || Storage::disk('public')->exists($path) || ! is_file($source) || ! function_exists('imagecreatefromjpeg')) {
-            return $path;
+        if (! app()->runningUnitTests() && is_file($source) && ! Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->put($path, (string) file_get_contents($source));
         }
-
-        $image = imagecreatefromjpeg($source);
-        if ($darken) {
-            imagefilter($image, IMG_FILTER_GRAYSCALE);
-            imagefilter($image, IMG_FILTER_BRIGHTNESS, -55);
-            imagefilter($image, IMG_FILTER_CONTRAST, -10);
-        }
-        ob_start();
-        imagejpeg($image, null, 82);
-        Storage::disk('public')->put($path, (string) ob_get_clean());
-        imagedestroy($image);
 
         return $path;
     }

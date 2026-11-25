@@ -400,15 +400,15 @@ export function ColourCompare({ data }: { data: { title: string; left: Side; rig
                             <ChevronLeft className="size-4" strokeWidth={1.5} />
                             <ChevronRight className="-ms-1 size-4" strokeWidth={1.5} />
                         </span>
-                        <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-2 text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]">
+                        <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm">
                             <span className="store-caps text-[13px]">{data.left.label}</span>
-                            <Link href={data.left.url} className="border-b border-white text-[13px]">
+                            <Link href={data.left.url} className="border-b border-ink text-[13px]">
                                 {t('home.view_product')}
                             </Link>
                         </div>
-                        <div className="absolute right-6 bottom-6 z-20 flex flex-col items-end gap-2 text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.35)]">
+                        <div className="absolute right-6 bottom-6 z-20 flex flex-col items-end gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm">
                             <span className="store-caps text-[13px]">{data.right.label}</span>
-                            <Link href={data.right.url} className="border-b border-white text-[13px]">
+                            <Link href={data.right.url} className="border-b border-ink text-[13px]">
                                 {t('home.view_product')}
                             </Link>
                         </div>
