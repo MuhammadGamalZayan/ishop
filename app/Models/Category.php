@@ -19,7 +19,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
-#[Fillable(['parent_id', 'name', 'slug', 'description', 'is_active', 'sort_order', 'meta_title', 'meta_description'])]
+#[Fillable(['parent_id', 'name', 'slug', 'description', 'is_active', 'show_in_menu', 'menu_colour_value_ids', 'menu_cards', 'sort_order', 'meta_title', 'meta_description'])]
 class Category extends Model implements HasMedia
 {
     use HasSlug, HasTranslations, InteractsWithMedia, LogsActivity, SoftDeletes;
@@ -79,6 +79,9 @@ class Category extends Model implements HasMedia
     {
         return [
             'is_active' => 'boolean',
+            'show_in_menu' => 'boolean',
+            'menu_colour_value_ids' => 'array',
+            'menu_cards' => 'array',
             'sort_order' => 'integer',
         ];
     }

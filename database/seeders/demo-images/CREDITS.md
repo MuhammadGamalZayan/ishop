@@ -27,3 +27,16 @@ Free photos from Unsplash (https://unsplash.com/license), square-cropped by Unsp
 | card-holder-2.jpg | https://images.unsplash.com/photo-1614330316567-11d8e572db16 |
 | coin-pouch-1.jpg | https://images.unsplash.com/photo-1758798689719-5b554ac3b65a |
 | coin-pouch-2.jpg | https://images.unsplash.com/photo-1765519313320-22b0865e9c32 |
+| midnight-slip-dress-1.jpg | https://images.unsplash.com/photo-1519554318711-aaf73ece6ff9 |
+| linen-day-dress-1.jpg | https://images.unsplash.com/photo-1540459920617-415d62f1f76b |
+| silk-tie-blouse-1.jpg | https://images.unsplash.com/photo-1770294758906-c8762abb2c8b |
+| crimson-v-neck-top-1.jpg | https://images.unsplash.com/photo-1761117228880-df2425bd70da |
+| ivory-pointed-heels-1.jpg | https://images.unsplash.com/photo-1535043934128-cf0b28d52f95 |
+| stiletto-ankle-boots-1.jpg | https://images.unsplash.com/photo-1605733513549-de9b150bd70d |
+| camel-trench-coat-1.jpg | https://images.unsplash.com/photo-1651491646869-3f18f4d30be0 |
+| indigo-denim-shirt-1.jpg | https://images.unsplash.com/photo-1740711152088-88a009e877bb |
+| white-oxford-shirt-1.jpg | https://images.unsplash.com/photo-1713881587420-113c1c43e28a |
+| navy-linen-tee-1.jpg | https://images.unsplash.com/photo-1713881649391-a1c8ddaf83cd |
+| horsebit-loafers-1.jpg | https://images.unsplash.com/photo-1676121270762-47c8d3a7b9d5 |
+| tan-derby-shoes-1.jpg | https://images.unsplash.com/photo-1625357165350-bdbcb6d7d524 |
+| wool-overcoat-1.jpg | https://images.unsplash.com/photo-1619603364904-c0498317e145 |

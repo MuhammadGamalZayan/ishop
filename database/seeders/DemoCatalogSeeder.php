@@ -22,7 +22,8 @@ use RuntimeException;
  *
  *   php artisan db:seed --class=DemoCatalogSeeder
  *
- * Refuses to run in production. Safe to run once; a second run is skipped.
+ * Refuses to run in production unless ISHOP_DEMO_DATA=true (a demo store).
+ * Safe to run once; a second run is skipped.
  *
  * Local test accounts: admin@ishop.test (AdminUserSeeder) and
  * customer@ishop.test (registered through the storefront while testing),
@@ -32,8 +33,8 @@ class DemoCatalogSeeder extends Seeder
 {
     public function run(VariantGenerator $generator, Inventory $inventory): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('DemoCatalogSeeder is for local development only.');
+        if (app()->isProduction() && ! config('ishop.demo_data')) {
+            throw new RuntimeException('DemoCatalogSeeder is for local development only (set ISHOP_DEMO_DATA=true for a demo store).');
         }
 
         if (Product::query()->exists()) {
@@ -139,7 +140,10 @@ class DemoCatalogSeeder extends Seeder
 
         $this->command?->info('Demo catalog created: '.Product::count().' products.');
 
+        // Clothing, shoes and the mega menu, then photos for everything.
+        $this->call(DemoFashionSeeder::class);
         $this->call(DemoImagesSeeder::class);
+        $this->call(DemoHomeSeeder::class);
     }
 
     private function shipping(): void

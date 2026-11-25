@@ -3,84 +3,148 @@ import { ChevronDown, Globe, Heart, Menu, Search, ShoppingBag, User, X } from 'l
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/components/shop/cart-context';
 import { Drawer } from '@/components/shop/drawer';
+import { cn } from '@/lib/utils';
 import { useOtherLanguageUrl, useShop, useT } from '@/lib/shop';
-import type { NavCategory } from '@/lib/shop';
+import type { NavLink, PictureCard } from '@/lib/shop';
 
 type Panel = 'none' | 'menu' | 'search' | 'account';
 
+/** One mega menu: link columns on the start side, picture cards on the end side. */
+type Mega = {
+    key: string;
+    name: string;
+    url?: string;
+    columns: { title: string; links: NavLink[]; swatches?: Record<string, string | null> }[];
+    cards: PictureCard[];
+};
+
 /**
- * Header from the mockups: category nav with a mega menu, centred logo,
- * language switch, account, search and cart. On phones the categories move
- * into a side menu. (The announcement bar needs an admin setting first.)
+ * Header (approved mockup): Women / Men / About with mega menus, centred
+ * logo, language, wishlist, account, search and cart.
+ * - Desktop: a menu opens on hover (short delay so passing over doesn't
+ *   flash it) or on click / Enter for touch and keyboard users.
+ * - It sticks to the top; after scrolling it shrinks into a rounded bar
+ *   inside the page width.
+ * - Phones: a side drawer with each menu as an expandable section.
  */
 export function StoreHeader() {
-    const { nav, locale, cart, auth, wishlist } = useShop();
+    const { nav, aboutMenu, locale, cart, auth, wishlist } = useShop();
     const t = useT();
     const switchUrl = useOtherLanguageUrl();
     const cartUi = useCart();
     const [panel, setPanel] = useState<Panel>('none');
-    const [menuFor, setMenuFor] = useState<NavCategory | null>(null);
+    const [openKey, setOpenKey] = useState<string | null>(null);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const headerRef = useRef<HTMLElement>(null);
+    const hoverTimer = useRef<number | undefined>(undefined);
+
+    // Menus: each category's columns, then popular colours and highlights, then About.
+    const menus: Mega[] = [
+        ...nav.map((c) => ({
+            key: c.url,
+            name: c.name,
+            url: c.url,
+            columns: [
+                ...c.columns,
+                ...(c.colours.length ? [{ title: t('menu.popular_colours'), links: c.colours.map(({ name, url }) => ({ name, url })), swatches: Object.fromEntries(c.colours.map((s) => [s.url, s.hex])) }] : []),
+                ...(c.highlights.length ? [{ title: t('menu.highlights'), links: c.highlights }] : []),
+            ],
+            cards: c.cards,
+        })),
+        ...(aboutMenu ? [{ key: 'about', name: t('menu.about'), columns: aboutMenu.columns, cards: aboutMenu.cards }] : []),
+    ];
+    const open = menus.find((m) => m.key === openKey) ?? null;
 
     const close = () => {
+        window.clearTimeout(hoverTimer.current);
         setPanel('none');
-        setMenuFor(null);
+        setOpenKey(null);
     };
 
-    // Close panels on Esc, on outside click, and when the page changes.
+    const openMenu = (key: string, delay = 0) => {
+        window.clearTimeout(hoverTimer.current);
+        hoverTimer.current = window.setTimeout(() => {
+            setOpenKey(key);
+            setPanel('menu');
+        }, delay);
+    };
+
+    const leave = () => {
+        window.clearTimeout(hoverTimer.current);
+        hoverTimer.current = window.setTimeout(() => {
+            setPanel((p) => (p === 'menu' ? 'none' : p));
+            setOpenKey(null);
+        }, 180);
+    };
+
+    // Close on Esc, outside click and page change; track scrolling for the compact bar.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
         const onClick = (e: MouseEvent) => headerRef.current && !headerRef.current.contains(e.target as Node) && close();
+        const onScroll = () => setScrolled(window.scrollY > 120);
         const off = router.on('navigate', close);
         document.addEventListener('keydown', onKey);
         document.addEventListener('mousedown', onClick);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
 
         return () => {
             off();
+            window.clearTimeout(hoverTimer.current);
             document.removeEventListener('keydown', onKey);
             document.removeEventListener('mousedown', onClick);
+            window.removeEventListener('scroll', onScroll);
         };
     }, []);
 
-    const toggle = (p: Panel) => setPanel((current) => (current === p ? 'none' : p));
+    const toggle = (p: Panel) => {
+        setOpenKey(null);
+        setPanel((current) => (current === p ? 'none' : p));
+    };
     const home = `/${locale}`;
 
     return (
-        <header ref={headerRef} className="relative z-40 bg-white">
-            <div className="relative border-b border-[#e2e2e2]">
-                <div className="grid min-h-20 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 px-4 py-3 sm:px-10">
+        <header ref={headerRef} className={cn('sticky top-0 z-40 transition-[padding] duration-300', scrolled && 'lg:px-6 lg:pt-2.5')}>
+            <div
+                className={cn(
+                    'relative border-b border-[#e2e2e2] bg-white transition-all duration-300',
+                    scrolled && 'lg:mx-auto lg:max-w-[1280px] lg:rounded-2xl lg:border lg:shadow-[0_8px_30px_rgba(0,0,0,0.07)]',
+                )}
+                onMouseLeave={leave}
+            >
+                <div className={cn('grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-5 px-4 transition-all duration-300 sm:px-10', scrolled ? 'min-h-16 lg:min-h-15' : 'min-h-20')}>
                     <nav aria-label={t('nav.main')} className="flex items-center">
                         <button type="button" onClick={() => setMobileOpen(true)} aria-label={t('nav.menu')} className="-ms-3 flex size-11 items-center justify-center lg:hidden">
                             <Menu className="size-5" strokeWidth={1.3} />
                         </button>
-                        <ul className="store-caps hidden flex-wrap gap-7 text-[13px] lg:flex">
-                            {nav.map((category) =>
-                                category.children.length > 0 ? (
-                                    <li key={category.url}>
+                        <ul className="store-caps hidden flex-wrap gap-8 text-[13px] lg:flex">
+                            {menus.map((menu) => {
+                                const isOpen = openKey === menu.key;
+
+                                return (
+                                    <li key={menu.key} onMouseEnter={() => openMenu(menu.key, panel === 'menu' ? 0 : 90)}>
                                         <button
                                             type="button"
-                                            aria-expanded={menuFor?.url === category.url}
-                                            onClick={() => {
-                                                setPanel(menuFor?.url === category.url ? 'none' : 'menu');
-                                                setMenuFor(menuFor?.url === category.url ? null : category);
-                                            }}
-                                            className={`store-caps -mb-7 inline-flex items-center gap-1 border-b pb-7 ${menuFor?.url === category.url ? 'border-ink' : 'border-transparent'}`}
+                                            aria-expanded={isOpen}
+                                            aria-haspopup="true"
+                                            onClick={() => (isOpen ? close() : openMenu(menu.key))}
+                                            className={cn(
+                                                'store-caps relative inline-flex items-center gap-1 transition-[padding] duration-300 after:absolute after:inset-x-0 after:h-px after:origin-center after:bg-ink after:transition-transform after:duration-300',
+                                                scrolled ? 'py-5 after:bottom-3.5' : 'py-7 after:bottom-5',
+                                                isOpen ? 'after:scale-x-100' : 'after:scale-x-0 hover:after:scale-x-100',
+                                            )}
                                         >
-                                            {category.name}
-                                            <ChevronDown className="size-3" aria-hidden="true" />
+                                            {menu.name}
+                                            <ChevronDown className={cn('size-3 transition-transform duration-200', isOpen && 'rotate-180')} aria-hidden="true" />
                                         </button>
                                     </li>
-                                ) : (
-                                    <li key={category.url}>
-                                        <Link href={category.url}>{category.name}</Link>
-                                    </li>
-                                ),
-                            )}
+                                );
+                            })}
                         </ul>
                     </nav>
 
-                    <Link href={home} className="font-logo text-[30px] leading-none tracking-[0.06em]">
+                    <Link href={home} className={cn('font-logo leading-none tracking-[0.06em] transition-all duration-300', scrolled ? 'text-[26px]' : 'text-[30px]')}>
                         iShop
                     </Link>
 
@@ -108,23 +172,48 @@ export function StoreHeader() {
                     </div>
                 </div>
 
-                {(panel === 'menu' || panel === 'search') && <button type="button" aria-label={t('nav.close')} onClick={close} className="absolute inset-x-0 top-full h-screen cursor-default bg-black/40" />}
+                {panel === 'search' && <button type="button" aria-label={t('nav.close')} onClick={close} className="absolute inset-x-0 top-full h-screen cursor-default bg-black/40" />}
 
-                {panel === 'menu' && menuFor && (
-                    <div className="absolute inset-x-0 top-full border-b border-[#e2e2e2] bg-white px-10 pt-10 pb-12">
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-x-10 gap-y-3.5">
-                            <p className="store-caps col-span-full mb-1 text-xs">{menuFor.name}</p>
-                            {menuFor.children.map((child) => (
-                                <Link key={child.url} href={child.url} className="text-[15px] text-subtle hover:text-ink">
-                                    {child.name}
-                                </Link>
-                            ))}
-                            <Link href={menuFor.url} className="text-[15px] text-ink underline underline-offset-4">
-                                {t('nav.shop_all')}
-                            </Link>
+                {/* Mega menu (desktop) */}
+                <div
+                    className={cn(
+                        'absolute inset-x-0 top-full hidden border-b border-[#e2e2e2] bg-white transition-all duration-250 lg:block',
+                        scrolled && 'rounded-b-2xl border-x',
+                        panel === 'menu' && open ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-1.5 opacity-0',
+                    )}
+                    onMouseEnter={() => window.clearTimeout(hoverTimer.current)}
+                >
+                    {open && (
+                        <div className="mx-auto flex max-w-[1360px] justify-between gap-12 px-10 pt-9 pb-11">
+                            <div className="flex flex-wrap gap-x-14 gap-y-8">
+                                {open.columns.map((column) => (
+                                    <div key={column.title} className="min-w-[140px]">
+                                        <p className="store-caps mb-4 text-xs">{column.title}</p>
+                                        <ul className="flex flex-col gap-2.5">
+                                            {column.links.map((link) => (
+                                                <li key={link.url}>
+                                                    <Link href={link.url} className="inline-flex items-center gap-2 text-[15px] text-subtle transition-colors hover:text-ink">
+                                                        {column.swatches && (
+                                                            <span className="inline-block size-2.5 rounded-full border border-black/15" style={{ background: column.swatches[link.url] ?? '#ccc' }} aria-hidden="true" />
+                                                        )}
+                                                        {link.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                            {open.cards.length > 0 && (
+                                <div className="flex shrink-0 gap-6">
+                                    {open.cards.map((card) => (
+                                        <MenuCard key={card.url + card.title} card={card} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {panel === 'search' && (
                     <div className="absolute inset-x-0 top-full border-b border-[#e2e2e2] bg-white">
@@ -184,18 +273,32 @@ export function StoreHeader() {
             </div>
 
             <Drawer open={mobileOpen} onOpenChange={setMobileOpen} title={t('nav.menu')}>
-                <nav aria-label={t('nav.main')} className="flex flex-col px-7 py-4">
-                    {nav.map((category) => (
-                        <div key={category.url} className="border-b border-line py-3">
-                            <Link href={category.url} onClick={() => setMobileOpen(false)} className="store-caps block py-2 text-sm">
-                                {category.name}
-                            </Link>
-                            {category.children.map((child) => (
-                                <Link key={child.url} href={child.url} onClick={() => setMobileOpen(false)} className="block py-1.5 ps-3 text-[15px] text-subtle">
-                                    {child.name}
-                                </Link>
-                            ))}
-                        </div>
+                <nav aria-label={t('nav.main')} className="flex flex-col px-7 py-2">
+                    {menus.map((menu) => (
+                        <details key={menu.key} className="group border-b border-line">
+                            <summary className="store-caps flex cursor-pointer list-none items-center justify-between py-4 text-sm [&::-webkit-details-marker]:hidden">
+                                {menu.name}
+                                <ChevronDown className="size-4 transition-transform group-open:rotate-180" strokeWidth={1.3} aria-hidden="true" />
+                            </summary>
+                            <div className="flex flex-col gap-4 pb-5">
+                                {menu.columns.map((column) => (
+                                    <div key={column.title}>
+                                        <p className="store-caps mb-2 text-[11px] text-subtle">{column.title}</p>
+                                        {column.links.map((link) => (
+                                            <Link key={link.url} href={link.url} onClick={() => setMobileOpen(false)} className="flex items-center gap-2 py-1.5 text-[15px]">
+                                                {column.swatches && <span className="inline-block size-2.5 rounded-full border border-black/15" style={{ background: column.swatches[link.url] ?? '#ccc' }} aria-hidden="true" />}
+                                                {link.name}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                ))}
+                                {menu.url && (
+                                    <Link href={menu.url} onClick={() => setMobileOpen(false)} className="text-[15px] underline underline-offset-4">
+                                        {t('nav.shop_all')}
+                                    </Link>
+                                )}
+                            </div>
+                        </details>
                     ))}
                     <a href={switchUrl} className="mt-4 inline-flex items-center gap-2 py-2 text-sm">
                         <Globe className="size-4" strokeWidth={1.3} aria-hidden="true" />
@@ -204,5 +307,17 @@ export function StoreHeader() {
                 </nav>
             </Drawer>
         </header>
+    );
+}
+
+function MenuCard({ card }: { card: PictureCard }) {
+    return (
+        <Link href={card.url} className="group/card block w-[230px] text-center xl:w-[260px]">
+            <span className="block aspect-[4/5] overflow-hidden bg-mist">
+                {card.image && <img src={card.image} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover/card:scale-[1.04]" />}
+            </span>
+            <span className="store-caps mt-3.5 block text-xs">{card.title}</span>
+            {card.subtitle && <span className="store-caps mt-1 block text-[11px] text-subtle">{card.subtitle}</span>}
+        </Link>
     );
 }

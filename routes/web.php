@@ -4,6 +4,7 @@ use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\AddressController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\PageController;
 use App\Http\Controllers\Shop\ShopController;
 use App\Http\Controllers\Shop\WishlistController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
@@ -79,6 +80,8 @@ Route::prefix('{locale}')
         // Product URLs don't include the category, so they stay stable if categories change.
         Route::get('products/{slug}', [ShopController::class, 'product'])->name('product');
         Route::get('products/{slug}/quick', [ShopController::class, 'quick'])->middleware('throttle:cart')->name('product.quick');
+        // Content pages from the admin panel (Our story, FAQ, Contact…).
+        Route::get('pages/{slug}', [PageController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('page');
         // Category slugs can't be reserved words (config/ishop.php), so this catch-all is last.
         Route::get('{slug}', [ShopController::class, 'category'])->where('slug', '[a-z0-9-]+')->name('category');
     });
@@ -90,6 +93,14 @@ Route::middleware('throttle:cart')->group(function () {
     Route::delete('cart/items/{item}', [CartController::class, 'destroy'])->whereNumber('item')->name('cart.items.destroy');
     Route::post('wishlist/{product}', [WishlistController::class, 'toggle'])->whereNumber('product')->name('wishlist.toggle');
 });
+
+// Newsletter sign-up and the Contact page form: few per minute per visitor.
+Route::middleware('throttle:6,1')->group(function () {
+    Route::post('newsletter', [PageController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::post('contact', [PageController::class, 'contact'])->name('contact.send');
+});
+Route::get('newsletter', fn () => redirect()->route('home'));
+Route::get('contact', fn () => redirect()->route('home'));
 
 // Stripe payment events (signed; CSRF-exempt in bootstrap/app.php).
 Route::post('webhooks/stripe', StripeWebhookController::class)->middleware('throttle:120,1')->name('webhooks.stripe');

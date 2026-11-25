@@ -21,8 +21,8 @@ class DemoImagesSeeder extends Seeder
 {
     public function run(): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('DemoImagesSeeder is for local development only.');
+        if (app()->isProduction() && ! config('ishop.demo_data')) {
+            throw new RuntimeException('DemoImagesSeeder is for local development only (set ISHOP_DEMO_DATA=true for a demo store).');
         }
 
         if (app()->runningUnitTests()) {

@@ -2,8 +2,11 @@
 
 namespace App\Filament\Admin\Resources\Categories\Schemas;
 
+use App\Enums\AttributeType;
 use App\Filament\Admin\Concerns\TranslatableFields;
+use App\Filament\Admin\Support\PictureCards;
 use App\Models\Category;
+use App\Models\ProductAttributeValue;
 use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -12,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
@@ -56,6 +60,28 @@ class CategoryForm
                                         ->rows(2)
                                         ->maxLength(160),
                                 ]),
+                            ]),
+
+                        // Main (top-level) categories are the header items.
+                        Section::make(__('admin.categories.sections.menu'))
+                            ->description(__('admin.categories.help.menu'))
+                            ->visible(fn (Get $get): bool => blank($get('parent_id')))
+                            ->collapsible()
+                            ->schema([
+                                Toggle::make('show_in_menu')
+                                    ->label(__('admin.categories.fields.show_in_menu'))
+                                    ->default(true),
+                                Select::make('menu_colour_value_ids')
+                                    ->label(__('admin.categories.fields.menu_colours'))
+                                    ->multiple()
+                                    ->maxItems(6)
+                                    ->options(fn (): array => ProductAttributeValue::query()
+                                        ->whereHas('productAttribute', fn (Builder $q) => $q->where('type', AttributeType::Color))
+                                        ->orderBy('sort_order')
+                                        ->get()
+                                        ->mapWithKeys(fn (ProductAttributeValue $v): array => [$v->getKey() => $v->value])
+                                        ->all()),
+                                PictureCards::repeater('menu_cards', 'menu'),
                             ]),
                     ]),
 

@@ -7,6 +7,7 @@ use App\Services\Cart\CartService;
 use App\Services\Cart\WishlistService;
 use App\Support\Storefront\CartDrawer;
 use App\Support\Storefront\Catalog;
+use App\Support\Storefront\HomePage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -52,6 +53,9 @@ class HandleInertiaRequests extends Middleware
             // Storefront text (lang/{en,ar}/shop.php) for the React `t()` helper.
             't' => fn (): array => trans('shop') + ['ui' => app()->getLocale() === 'ar' ? trans('ui') : []],
             'nav' => fn (): array => app(Catalog::class)->navigation(),
+            'aboutMenu' => fn (): ?array => app(Catalog::class)->aboutMenu(),
+            // The newsletter band above the footer, on every store page.
+            'newsletter' => fn (): array => HomePage::newsletter(),
             // Lazy: one small query, only when the page renders the header badge.
             'cart' => fn (): array => ['count' => app(CartService::class)->count()],
             'wishlist' => fn (): array => app(WishlistService::class)->productIds(),

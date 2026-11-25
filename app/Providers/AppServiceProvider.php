@@ -103,6 +103,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
+        // Admin uploads go through Livewire: allow home page videos up to 30 MB
+        // (the server's upload_max_filesize / post_max_size must allow it too).
+        config(['livewire.temporary_file_upload.rules' => ['required', 'file', 'max:30720']]);
+
         if (config('ishop.force_https')) {
             URL::forceScheme('https');
         }

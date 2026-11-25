@@ -213,3 +213,17 @@
 [dir='rtl'] .store-caps {
     letter-spacing: 0;
 }
+
+/* ---- Home page animations (light; disabled for reduced motion) ------------ */
+
+@keyframes marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes hotspot {
+    50% {
+        box-shadow: 0 0 0 13px rgba(255, 255, 255, 0.18);
+    }
+}

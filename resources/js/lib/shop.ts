@@ -6,6 +6,8 @@ export type ShopProps = {
     dir: 'ltr' | 'rtl';
     t: Record<string, unknown>;
     nav: NavCategory[];
+    aboutMenu: AboutMenu | null;
+    newsletter: { image: string | null; kicker: string; title: string; text: string };
     cart: { count: number };
     wishlist: number[];
     socialProviders: ('google' | 'github')[];
@@ -14,7 +16,18 @@ export type ShopProps = {
     name: string;
 };
 
-export type NavCategory = { name: string; url: string; children: { name: string; url: string }[] };
+export type NavLink = { name: string; url: string };
+export type PictureCard = { image: string | null; title: string; subtitle: string; url: string };
+export type NavCategory = {
+    name: string;
+    url: string;
+    children: NavLink[];
+    columns: { title: string; url?: string; links: NavLink[] }[];
+    colours: { name: string; hex: string | null; url: string }[];
+    highlights: NavLink[];
+    cards: PictureCard[];
+};
+export type AboutMenu = { columns: { title: string; links: NavLink[] }[]; cards: PictureCard[] };
 
 export type ProductCardData = {
     id: number;

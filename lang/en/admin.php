@@ -68,6 +68,122 @@ return [
         ],
     ],
 
+    'home' => [
+        'group' => 'Content',
+        'title' => 'Home page',
+        'save' => 'Save',
+        'saved' => 'Home page saved.',
+        'video_help' => 'MP4 or WebM, up to 30 MB. Short clips that work without sound are best.',
+        'tabs' => [
+            'hero' => 'Hero slider',
+            'products' => 'Best sellers & New in',
+            'trio' => 'Category pictures',
+            'marquee' => 'Scrolling text',
+            'video' => 'Video',
+            'looks' => 'Our looks',
+            'sale' => 'Sale banner',
+            'compare' => 'Choose your colour',
+            'newsletter' => 'Newsletter band',
+            'about' => 'About menu',
+        ],
+        'fields' => [
+            'kicker' => 'Small text above',
+            'title' => 'Title',
+            'button' => 'Button text',
+            'text' => 'Text',
+            'label' => 'Label',
+        ],
+        'hero' => [
+            'slides' => 'Slides',
+            'type' => 'Slide type',
+            'image' => 'Photo',
+            'video' => 'Video',
+            'poster' => 'Cover photo (shown while the video loads)',
+        ],
+        'best' => [
+            'title' => 'Best sellers',
+            'categories' => 'Tabs (categories)',
+            'help' => 'One tab per category, showing its 4 best-selling products. Empty = the main menu categories.',
+        ],
+        'new' => [
+            'title' => 'New in',
+            'category' => 'Category to show',
+        ],
+        'trio' => [
+            'items' => 'Three pictures (the first one is the large one)',
+            'help' => 'Each picture links to its category and shows the category name.',
+            'category' => 'Category',
+        ],
+        'marquee' => [
+            'top' => 'Top line',
+            'bottom' => 'Bottom line (moves the other way)',
+            'thumb' => 'Small product photo (optional)',
+        ],
+        'looks' => [
+            'slides' => 'Looks (one photo per slide)',
+            'help' => 'Upload the photo, choose the products, then click on the photo where each product is.',
+            'hotspots' => 'Products in this photo',
+            'product' => 'Product',
+            'dot' => 'Dot',
+            'picker_help' => 'Choose a dot, then click on the product in the photo. Dots follow the order of the products above.',
+            'upload_first' => 'Upload the photo first, then place the dots here.',
+        ],
+        'sale' => [
+            'enabled' => 'Show the sale banner',
+            'ends_at' => 'Sale ends at',
+            'ends_help' => 'The countdown counts to this date; after it the banner hides itself.',
+        ],
+        'compare' => [
+            'left' => 'Left colour',
+            'right' => 'Right colour',
+        ],
+    ],
+
+    'pages' => [
+        'label' => 'Page',
+        'plural' => 'Pages',
+        'fields' => [
+            'title' => 'Title',
+            'body' => 'Content',
+            'slug' => 'URL slug',
+            'menu_group' => 'About menu column',
+            'template' => 'Layout',
+            'is_published' => 'Published',
+            'sort_order' => 'Order',
+            'meta_description' => 'Meta description',
+        ],
+        'groups' => ['discover' => 'Discover', 'help' => 'Help', 'none' => 'Not in the menu'],
+        'templates' => ['default' => 'Text page', 'contact' => 'Text + contact form'],
+        'help' => [
+            'slug' => 'Leave empty to build it from the English title. The page opens at /en/pages/{slug}.',
+        ],
+    ],
+
+    'messages' => [
+        'label' => 'Message',
+        'plural' => 'Contact messages',
+        'fields' => ['name' => 'Name', 'email' => 'E-mail', 'phone' => 'Phone', 'message' => 'Message', 'received' => 'Received', 'read' => 'Read'],
+        'mark_read' => 'Mark as read',
+    ],
+
+    'subscribers' => [
+        'label' => 'Subscriber',
+        'plural' => 'Newsletter subscribers',
+        'fields' => ['email' => 'E-mail', 'locale' => 'Language', 'subscribed' => 'Subscribed'],
+    ],
+
+    'picture_cards' => [
+        'label' => 'Picture cards',
+        'image' => 'Image',
+        'title_en' => 'Title (English)',
+        'title_ar' => 'Title (Arabic)',
+        'subtitle_en' => 'Subtitle (English)',
+        'subtitle_ar' => 'Subtitle (Arabic)',
+        'link' => 'Link',
+        'link_help' => 'A category slug (dresses), products/slug, pages/slug (both open in the visitor\x27s language), a path starting with / or a full https:// address.',
+        'link_invalid' => 'Use a category slug, a path starting with / or a full https:// address.',
+    ],
+
     'categories' => [
         'label' => 'Category',
         'plural' => 'Categories',
@@ -76,6 +192,7 @@ return [
             'content' => 'Content',
             'seo' => 'Search engines (SEO)',
             'settings' => 'Settings',
+            'menu' => 'Mega menu',
         ],
 
         'fields' => [
@@ -89,10 +206,13 @@ return [
             'image' => 'Image',
             'children_count' => 'Subcategories',
             'products_count' => 'Products',
+            'show_in_menu' => 'Show in the header menu',
+            'menu_colours' => 'Popular colours (links to this category filtered by colour)',
         ],
 
         'help' => [
             'seo' => 'Optional. If left empty, the category name and description are used.',
+            'menu' => 'Main categories appear in the header. Their subcategories become menu columns: a subcategory with its own subcategories is a column heading (e.g. Clothing → Dresses, Shirts).',
             'no_parent' => 'None (top level)',
             'slug_create' => 'Leave empty to build it from the English name.',
             'slug_edit' => 'Changing this breaks existing links and search results to this category.',

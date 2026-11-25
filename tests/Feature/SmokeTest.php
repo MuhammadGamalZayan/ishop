@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Governorate;
 use App\Models\Order;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ShippingArea;
@@ -79,7 +80,7 @@ class SmokeTest extends TestCase
     {
         $urls = ['/admin'];
 
-        foreach (['attributes', 'brands', 'categories', 'coupons', 'products', 'shipping'] as $resource) {
+        foreach (['attributes', 'brands', 'categories', 'coupons', 'products', 'shipping', 'pages'] as $resource) {
             $urls[] = "/admin/{$resource}";
             $urls[] = "/admin/{$resource}/create";
         }
@@ -96,6 +97,12 @@ class SmokeTest extends TestCase
         $urls[] = '/admin/coupons/'.Coupon::query()->value('id').'/edit';
         $urls[] = '/admin/shipping/'.Governorate::query()->whereHas('shippingAreas')->value('id').'/edit';
         $urls[] = '/admin/orders';
+        $urls[] = '/admin/home-page';
+        $urls[] = '/admin/contact-messages';
+        $urls[] = '/admin/newsletter-subscribers';
+        foreach (Page::all() as $page) {
+            $urls[] = "/admin/pages/{$page->slug}/edit"; // pages are addressed by slug
+        }
         $urls[] = '/admin/orders/'.$this->order->number; // orders are addressed by number
 
         foreach ($urls as $url) {
@@ -106,6 +113,11 @@ class SmokeTest extends TestCase
     public function test_every_store_page_opens_for_guests_and_customers(): void
     {
         $pages = ['/en', '/ar', '/en/wishlist', '/ar/wishlist'];
+
+        foreach (Page::all() as $page) {
+            $pages[] = "/en/pages/{$page->slug}";
+            $pages[] = "/ar/pages/{$page->slug}";
+        }
 
         foreach (Category::all() as $c) {
             $pages[] = "/en/{$c->slug}";

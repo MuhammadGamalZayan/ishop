@@ -10,7 +10,7 @@ return [
         'all', 'products', 'product', 'cart', 'checkout', 'login', 'logout', 'register',
         'account', 'orders', 'wishlist', 'search', 'admin', 'api', 'settings', 'dashboard',
         'password', 'email', 'two-factor-challenge', 'user', 'payments', 'webhooks', 'up',
-        'storage', 'build', 'livewire', 'filament',
+        'storage', 'build', 'livewire', 'filament', 'pages', 'newsletter', 'contact',
     ],
 
     // Send every plain-HTTP request to HTTPS (and generate https:// links).
@@ -40,6 +40,10 @@ return [
 
     // Admins must confirm two-factor auth before entering Filament (skipped only in `local`).
     'admin_requires_2fa' => env('ISHOP_ADMIN_REQUIRES_2FA', true),
+
+    // Lets DemoCatalogSeeder / DemoImagesSeeder run in production, for a demo
+    // or portfolio store. Off by default so a real shop never gets fake products.
+    'demo_data' => (bool) env('ISHOP_DEMO_DATA', false),
 
     // First super-admin, created by AdminUserSeeder. Required in production.
     'admin' => [

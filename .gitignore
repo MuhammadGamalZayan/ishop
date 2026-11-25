@@ -47,3 +47,6 @@ yarn-error.log
 /opencode.json
 /opencode.jsonc
 /releases
+
+# Hand-made archives of the project (may contain .env)
+/*.zip

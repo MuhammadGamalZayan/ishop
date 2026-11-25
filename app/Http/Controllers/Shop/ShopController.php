@@ -10,6 +10,7 @@ use App\Models\ProductAttributeValue;
 use App\Models\ProductVariant;
 use App\Services\Cart\WishlistService;
 use App\Support\Storefront\Catalog;
+use App\Support\Storefront\HomePage;
 use App\Support\Storefront\ProductPage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
@@ -22,46 +23,12 @@ class ShopController extends Controller
 {
     public function __construct(private readonly Catalog $catalog) {}
 
-    /**
-     * Home: hero, then "best sellers" with one tab per top-level category
-     * (the mockup's Women / Men). Best sellers first, then featured, then newest.
-     */
-    public function home(): Response
+    /** Home page: every section comes from the admin panel (Home page), see HomePage. */
+    public function home(HomePage $home): Response
     {
-        $tabs = Category::query()->active()->whereNull('parent_id')->orderBy('sort_order')->limit(4)->get()
-            ->map(function (Category $category): array {
-                $ids = $category->descendantIds();
-                $ids[] = $category->getKey();
-
-                $products = $this->catalog->cardQuery()
-                    ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $ids))
-                    ->orderByDesc('is_featured')
-                    ->latest('published_at')
-                    ->limit(12)
-                    ->get();
-
-                $best = array_flip($this->catalog->bestSellerIds());
-                $products = $products->sortBy(fn (Product $p): int => $best[$p->getKey()] ?? PHP_INT_MAX)->take(4);
-
-                return [
-                    'name' => $category->name,
-                    'url' => route('shop.category', ['slug' => $category->slug]),
-                    'products' => $this->catalog->cards($products->values()),
-                ];
-            })
-            ->filter(fn (array $tab): bool => $tab['products'] !== [])
-            ->values();
-
-        return Inertia::render('shop/home', [
-            'tabs' => $tabs,
-            'heroLinks' => $tabs->take(2)->map(fn (array $t): array => ['name' => $t['name'], 'url' => $t['url']])->all(),
-        ]);
+        return Inertia::render('shop/home', $home->data());
     }
 
-    /**
-     * Category page (or "all" products): filters from the query string,
-     * all applied in the database. Unknown filter values are ignored.
-     */
     public function category(Request $request, string $slug): Response
     {
         $category = $slug === 'all'
