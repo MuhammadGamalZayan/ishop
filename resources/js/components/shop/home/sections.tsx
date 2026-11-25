@@ -359,6 +359,9 @@ export function ColourCompare({ data }: { data: { title: string; left: Side; rig
     const box = useRef<HTMLDivElement>(null);
     const [pos, setPos] = useState(50);
     const dragging = useRef(false);
+    // The left photo covers 0 → pos %, the right one pos → 100 %.
+    const leftShown = pos > 30;
+    const rightShown = pos < 70;
 
     const move = (clientX: number) => {
         const r = box.current?.getBoundingClientRect();
@@ -400,15 +403,28 @@ export function ColourCompare({ data }: { data: { title: string; left: Side; rig
                             <ChevronLeft className="size-4" strokeWidth={1.5} />
                             <ChevronRight className="-ms-1 size-4" strokeWidth={1.5} />
                         </span>
-                        <div className="absolute bottom-6 left-6 z-20 flex flex-col items-start gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm">
+                        {/* Each label shows only while enough of its own photo is visible. */}
+                        <div
+                            aria-hidden={!leftShown}
+                            className={cn(
+                                'absolute bottom-6 left-6 z-20 flex flex-col items-start gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm transition-opacity duration-300',
+                                leftShown ? 'opacity-100' : 'pointer-events-none opacity-0',
+                            )}
+                        >
                             <span className="store-caps text-[13px]">{data.left.label}</span>
-                            <Link href={data.left.url} className="border-b border-ink text-[13px]">
+                            <Link href={data.left.url} tabIndex={leftShown ? 0 : -1} className="border-b border-ink text-[13px]">
                                 {t('home.view_product')}
                             </Link>
                         </div>
-                        <div className="absolute right-6 bottom-6 z-20 flex flex-col items-end gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm">
+                        <div
+                            aria-hidden={!rightShown}
+                            className={cn(
+                                'absolute right-6 bottom-6 z-20 flex flex-col items-end gap-2 bg-white/85 px-4 py-3 text-ink backdrop-blur-sm transition-opacity duration-300',
+                                rightShown ? 'opacity-100' : 'pointer-events-none opacity-0',
+                            )}
+                        >
                             <span className="store-caps text-[13px]">{data.right.label}</span>
-                            <Link href={data.right.url} className="border-b border-ink text-[13px]">
+                            <Link href={data.right.url} tabIndex={rightShown ? 0 : -1} className="border-b border-ink text-[13px]">
                                 {t('home.view_product')}
                             </Link>
                         </div>
